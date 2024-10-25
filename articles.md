@@ -1,4 +1,4 @@
-# Recategorized Articles
+# Categorized Articles
 
 ## Air Pollution and Climate Change
 
