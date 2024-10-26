@@ -17,31 +17,157 @@ First let's download the input files from Google Drive to the local file system.
 ```{r}
 library(googledrive)
 
-DOWNLOAD_FILES <- TRUE
+DOWNLOAD_FILES <- FALSE
 INPUT_DIR <- "../input"
 INPUT_DIR_DRIVE_ID <- "1V7RvgCu65LSaa2JjeengEMKwIYAhpSt8"
 
 if (DOWNLOAD_FILES) {
     if (!dir.exists(INPUT_DIR)) {
         print("Creating input directory")
-        dir.create(INPUT_DIR)
+        dir.create(INPUT_DIR, showWarnings = FALSE)
     }
 
     # authenticate with Google Drive
     drive_auth()
 
-    input_files <- drive_ls(as_id(INPUT_DIR_DRIVE_ID))
+    input_dirs <- drive_ls(as_id(INPUT_DIR_DRIVE_ID))
 
-    for (i in 1:nrow(input_files)) {
-        source_path <- input_files$name[i]
-        destination_path <- file.path(INPUT_DIR, input_files$name[i])
-        print(paste("Downloading", source_path, "to", destination_path))
+    # loop dirs and download files inside them
+    for (i1 in seq_along(input_dirs$name)) {
+        input_files <- drive_ls(as_id(input_dirs$id[i1]))
 
-        drive_download(
-            as_id(input_files$id[i]),
-            path = file.path(INPUT_DIR, source_path),
-            overwrite = TRUE
-        )
+        input_subdir <- file.path(INPUT_DIR, input_dirs$name[i1])
+        if (!dir.exists(input_subdir)) {
+            print("Creating input directory")
+            dir.create(input_subdir, showWarnings = FALSE)
+        }
+
+        for (i2 in seq_along(input_files$name)) {
+            source_path <- file.path(input_dirs$name[i1], input_files$name[i2])
+            destination_path <- file.path(INPUT_DIR, input_dirs$name[i1], input_files$name[i2])
+            print(paste("Downloading", source_path, "to", destination_path))
+
+            drive_download(
+                as_id(input_files$id[i2]),
+                path = destination_path,
+                overwrite = TRUE
+            )
+        }
     }
+}
+```
+
+```{r}
+library(dplyr)
+library(readr)
+library(magrittr)
+
+city_name_map <- data.frame(
+    air_quality = c("Bengaluru", "Delhi", "Hyderabad", "Jaipur", "Mumbai"),
+    weather = c("bengaluru", "delhi", "hyderabad", "jaipur", "bombay")
+)
+
+# load the air quality data
+data_air_quality <- read_csv(file.path(INPUT_DIR, "air_quality", "city_hour.csv"))
+
+# filter the data for the cities of interest
+data_air_quality <- data_air_quality %>%
+    filter(City %in% city_name_map$air_quality) %>%
+    filter(Datetime < as.POSIXct("2020-01-01"))
+
+summary(data_air_quality)
+```
+
+Observations:
+
+* There are 12 numeric columns we could use as response variables: PM2.5, PM10, NO, NO2, NOx, NH3, CO, SO2, O3, Benzene, Toluene, Xylene.
+* AQI is calculated based on the above columns, so we should not use it as a response variable.
+* All these numeric columns have 15-80% missing values.
+
+```{r}
+library(ggplot2)
+
+# plot the distribution of the response variables
+response_vars <- c("PM2.5", "PM10", "NO", "NO2", "NOx", "NH3", "CO", "SO2", "O3", "Benzene", "Toluene", "Xylene")
+
+for (var in response_vars) {
+    col_is_int <- all(as.integer(data_air_quality[[var]]) == data_air_quality[[var]])
+    n_unique <- length(unique(data_air_quality[[var]]))
+
+    # color different cities differently
+    # and scale the x-axis logarithmically
+    p <- ggplot(data_air_quality, aes_string(x = var, fill = "City")) +
+        geom_histogram(bins = min(n_unique, 101)) +
+        scale_x_log10() +
+        labs(title = var)
+
+    print(p)
+}
+```
+
+Observations:
+
+* The distributions of the response variables are right-skewed with a long tail.
+
+```{r}
+# load the weather data from multiple CSV files
+data_weather <- list()
+
+for (city in city_name_map$weather) {
+    file_path <- file.path(INPUT_DIR, "weather", paste0(city, ".csv"))
+    this_data <- read_csv(file_path)
+    this_data$City <- city_name_map$air_quality[city_name_map$weather == city]
+    data_weather[[length(data_weather) + 1]] <- this_data
+
+    print(paste("Loaded weather data for city", city))
+}
+
+data_weather <- bind_rows(data_weather)
+
+# filter the data
+data_weather <- data_weather %>%
+    filter(date_time >= as.POSIXct("2015-01-01")) %>%
+    filter(date_time < as.POSIXct("2020-01-01"))
+
+summary(data_weather)
+```
+
+Observations:
+* There are no missing values in the weather data.
+
+```{r}
+# plot the distribution of the weather variables
+weather_vars <- c(
+    "maxtempC", "mintempC", "totalSnow_cm", "sunHour", "uvIndex...6", "uvIndex...7", "moon_illumination",
+    "DewPointC", "FeelsLikeC", "HeatIndexC", "WindChillC", "WindGustKmph", "cloudcover", "humidity",
+    "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph"
+)
+
+library(ggplot2)
+library(tidyr)
+
+for (var in weather_vars) {
+    col_is_int <- all(as.integer(data_weather[[var]]) == data_weather[[var]])
+    n_unique <- length(unique(data_weather[[var]]))
+
+    if (col_is_int && n_unique <= 101) {
+        # count the number of observations for each value per City
+        barplot_data <- data_weather %>%
+            group_by(City, !!sym(var)) %>%
+            summarise(n = n()) %>%
+            ungroup()
+        
+        # color different cities differently
+        p <- ggplot(barplot_data, aes_string(x = var, y = "n", fill = "City")) +
+            geom_bar(stat = "identity") +
+            labs(title = var)
+    } else {
+        # color different cities differently
+        p <- ggplot(data_weather, aes_string(x = var, fill = "City")) +
+            geom_histogram(bins = min(n_unique, 101)) +
+            labs(title = var)
+    }
+
+    print(p)
 }
 ```
