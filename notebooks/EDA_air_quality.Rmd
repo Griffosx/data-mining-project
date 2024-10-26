@@ -1,0 +1,44 @@
+---
+title: "Exploratory Data Analysis on Air Quality Data"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Exploratory Data Analysis on Air Quality Data
+
+First let's download from Google Drive the data we will be using for this analysis.
+
+```{r}
+library(googledrive)
+
+DOWNLOAD_FILES <- TRUE
+INPUT_DIR <- "input"
+INPUT_DIR_DRIVE_ID <- "1V7RvgCu65LSaa2JjeengEMKwIYAhpSt8"
+
+if (DOWNLOAD_FILES) {
+    if (!dir.exists(INPUT_DIR)) {
+        print("Creating input directory")
+        dir.create(INPUT_DIR)
+    }
+
+    # authenticate with Google Drive
+    drive_auth()
+
+    input_files <- drive_ls(as_id(INPUT_DIR_DRIVE_ID))
+
+    for (i in 1:nrow(input_files)) {
+        source_path <- input_files$name[i]
+        destination_path <- file.path(INPUT_DIR, input_files$name[i])
+        print(paste("Downloading", source_path, "to", destination_path))
+
+        drive_download(
+            as_id(input_files$id[i]),
+            path = file.path(INPUT_DIR, source_path),
+            overwrite = TRUE
+        )
+    }
+}
+```
