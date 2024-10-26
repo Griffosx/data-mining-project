@@ -5,17 +5,20 @@ output: html_notebook
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# TODO how to do this properly, env vars?
+# setwd("~/studies/data_mining/data-mining-project/notebooks")
 ```
 
 # Exploratory Data Analysis on Air Quality Data
 
-First let's download from Google Drive the data we will be using for this analysis.
+First let's download the input files from Google Drive to the local file system.
 
 ```{r}
 library(googledrive)
 
 DOWNLOAD_FILES <- TRUE
-INPUT_DIR <- "input"
+INPUT_DIR <- "../input"
 INPUT_DIR_DRIVE_ID <- "1V7RvgCu65LSaa2JjeengEMKwIYAhpSt8"
 
 if (DOWNLOAD_FILES) {
