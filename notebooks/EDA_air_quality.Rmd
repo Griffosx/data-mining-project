@@ -1,0 +1,405 @@
+---
+title: "Exploratory Data Analysis on Air Quality Data"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# TODO how to do this properly, env vars?
+setwd("~/studies/data_mining/data-mining-project/notebooks")
+```
+
+# Exploratory Data Analysis on Air Quality Data
+
+## Introduction
+
+In this analysis, we will explore the air quality data from various cities in India. The goal is to understand the distribution of air quality metrics, their relationship with weather variables, and build predictive models for the air quality metrics.
+
+### Loading Libraries
+
+```{r}
+library(ggplot2)
+library(googledrive)
+library(dplyr)
+library(readr)
+library(magrittr)
+library(tidyr)
+library(corrplot)
+library(caret)
+```
+
+## Downloading Data
+
+First, let's download the input files from Google Drive to the local file system.
+
+```{r}
+DOWNLOAD_FILES <- FALSE
+INPUT_DIR <- "../input"
+INPUT_DIR_DRIVE_ID <- "1V7RvgCu65LSaa2JjeengEMKwIYAhpSt8"
+
+if (DOWNLOAD_FILES) {
+    if (!dir.exists(INPUT_DIR)) {
+        cat("Creating input directory\n")
+        dir.create(INPUT_DIR, showWarnings = FALSE)
+    }
+
+    # authenticate with Google Drive
+    drive_auth()
+
+    input_dirs <- drive_ls(as_id(INPUT_DIR_DRIVE_ID))
+
+    # loop dirs and download files inside them
+    for (i1 in seq_along(input_dirs$name)) {
+        input_files <- drive_ls(as_id(input_dirs$id[i1]))
+
+        input_subdir <- file.path(INPUT_DIR, input_dirs$name[i1])
+        if (!dir.exists(input_subdir)) {
+            cat("Creating input directory\n")
+            dir.create(input_subdir, showWarnings = FALSE)
+        }
+
+        for (i2 in seq_along(input_files$name)) {
+            source_path <- file.path(input_dirs$name[i1], input_files$name[i2])
+            destination_path <- file.path(INPUT_DIR, input_dirs$name[i1], input_files$name[i2])
+            cat(paste("Downloading", source_path, "to", destination_path, "\n"))
+
+            drive_download(
+                as_id(input_files$id[i2]),
+                path = destination_path,
+                overwrite = TRUE
+            )
+        }
+    }
+}
+```
+
+## Loading Data
+
+```{r}
+city_name_map <- data.frame(
+    air_quality = c("Bengaluru", "Delhi", "Hyderabad", "Jaipur", "Mumbai"),
+    weather = c("bengaluru", "delhi", "hyderabad", "jaipur", "bombay")
+)
+
+# load the air quality data
+data_air_quality <- read_csv(
+    file.path(INPUT_DIR, "air_quality", "city_hour.csv"),
+    show_col_types = FALSE
+)
+
+# filter the data for the cities of interest
+data_air_quality <- data_air_quality %>%
+    filter(City %in% city_name_map$air_quality) %>%
+    filter(Datetime < as.POSIXct("2020-01-01"))
+
+summary(data_air_quality)
+
+# % of NA by column
+cat("NA values by column:\n")
+sapply(data_air_quality, function(x) sum(is.na(x)) / length(x))
+
+# % of NA by column and city, rounded to 3 decimal places
+# sapply(data_air_quality, function(x) {
+#     sapply(split(x, data_air_quality$City), function(y) round(sum(is.na(y)) / length(y), 3))
+# })
+```
+
+Observations:
+
+* There are 12 numeric columns we could use as response variables: PM2.5, PM10, NO, NO2, NOx, NH3, CO, SO2, O3, Benzene, Toluene, Xylene.
+* AQI is calculated based on the above columns, so we will not use AQI itself as a response variable.
+* All these numeric columns have up to 55% missing values.
+
+## Exploratory Data Analysis
+
+### Distribution of Response Variables
+
+```{r}
+# plot the distribution of the response variables
+response_vars <- c("PM2.5", "PM10", "NOx", "NH3", "CO", "SO2", "O3")
+
+for (var in response_vars) {
+    n_bins <- min(length(unique(data_air_quality[[var]])), 101)
+
+    # color different cities differently
+    # and scale the x-axis logarithmically
+    p <- ggplot(data_air_quality, aes_string(x = var, fill = "City")) +
+        geom_histogram(bins = n_bins) +
+        scale_x_log10() +
+        labs(title = var)
+
+    print(p)
+}
+```
+
+Observations:
+
+* The distributions of the response variables are right-skewed with a long tail.
+
+### Time Series Analysis
+
+```{r}
+library(lubridate)
+
+# plot boxplots for the response variables by City and Month
+for (var in response_vars) {
+    p <- ggplot(
+            data_air_quality,
+            aes_string(x = "factor(month(Datetime))", y = var, fill = "City")
+        ) +
+        geom_boxplot() +
+        labs(title = var)
+
+    print(p)
+}
+```
+
+Observations:
+
+* The response variables show some seasonal patterns.
+
+### Loading Weather Data
+
+```{r}
+# load the weather data from multiple CSV files
+data_weather <- list()
+
+for (city in city_name_map$weather) {
+    file_path <- file.path(INPUT_DIR, "weather", paste0(city, ".csv"))
+    this_data <- read_csv(file_path, show_col_types = FALSE)
+    this_data$City <- city_name_map$air_quality[city_name_map$weather == city]
+    data_weather[[length(data_weather) + 1]] <- this_data
+
+    cat(paste("Loaded weather data for city", city, "\n"))
+}
+
+data_weather <- bind_rows(data_weather)
+
+# filter the data
+data_weather <- data_weather %>%
+    filter(date_time >= as.POSIXct("2015-01-01")) %>%
+    filter(date_time < as.POSIXct("2020-01-01"))
+
+summary(data_weather)
+```
+
+Observations:
+
+* There are no missing values in the weather data.
+
+### Distribution of Weather Variables
+
+```{r}
+# plot the distribution of the weather variables
+weather_vars <- c(
+    "maxtempC", "mintempC", "totalSnow_cm", "sunHour", "uvIndex...6", "uvIndex...7", "moon_illumination",
+    "DewPointC", "FeelsLikeC", "HeatIndexC", "WindChillC", "WindGustKmph", "cloudcover", "humidity",
+    "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph"
+)
+
+for (var in weather_vars) {
+    col_is_int <- all(as.integer(data_weather[[var]]) == data_weather[[var]])
+    n_unique <- length(unique(data_weather[[var]]))
+
+    if (col_is_int && n_unique <= 101) {
+        # count the number of observations for each value per City
+        barplot_data <- data_weather %>%
+            group_by(City, !!sym(var)) %>%
+            summarise(n = n(), .groups = "drop") %>%
+            ungroup()
+        
+        # color different cities differently
+        p <- ggplot(barplot_data, aes_string(x = var, y = "n", fill = "City")) +
+            geom_bar(stat = "identity") +
+            labs(title = var)
+    } else {
+        # color different cities differently
+        p <- ggplot(data_weather, aes_string(x = var, fill = "City")) +
+            geom_histogram(bins = min(n_unique, 101)) +
+            labs(title = var)
+    }
+
+    print(p)
+}
+```
+
+## Feature Engineering
+
+```{r}
+# merge the air quality and weather data
+data_merged <- inner_join(
+    data_air_quality,
+    data_weather,
+    by = c("City", "Datetime" = "date_time")
+)
+
+# create a new variable for the hour of the day
+data_merged$hour_of_day <- as.numeric(format(data_merged$Datetime, "%H"))
+data_merged$hour_cos <- cos(2 * pi * data_merged$hour_of_day / 24)
+data_merged$hour_sin <- sin(2 * pi * data_merged$hour_of_day / 24)
+data_merged$hour_of_day <- factor(data_merged$hour_of_day)
+
+# create a new variable for the day of the week
+data_merged$day_of_week <- as.numeric(format(data_merged$Datetime, "%u"))
+data_merged$day_of_week <- factor(data_merged$day_of_week)
+
+# create a new variable for the month of the year
+data_merged$month_of_year <- as.numeric(format(data_merged$Datetime, "%m"))
+data_merged$month_of_year <- factor(data_merged$month_of_year)
+
+# convert wind direction to a sin-cos pair
+data_merged$winddir_cos <- cos(2 * pi * data_merged$winddirDegree / 360)
+data_merged$winddir_sin <- sin(2 * pi * data_merged$winddirDegree / 360)
+
+# convert the City variable to a factor
+data_merged$City <- factor(data_merged$City)
+```
+
+Let's scale the numeric features to have zero mean and unit variance.
+
+```{r}
+# determine the numeric features automatically
+numeric_vars <- sapply(data_merged, is.numeric)
+
+# remove the response variables from the numeric features
+numeric_vars <- numeric_vars & !names(data_merged) %in% (data_air_quality %>% select(-City, -Datetime) %>% colnames())
+
+# scale the numeric variables
+data_merged[numeric_vars] <- scale(data_merged[numeric_vars])
+```
+
+## Correlation Analysis
+
+### Feature-Feature Correlation
+
+```{r}
+# calculate the correlation matrix
+correlation_matrix <- cor(
+    data_merged[, weather_vars],
+    use = "pairwise.complete.obs"
+)
+
+# remove rows and columns with all NA values
+correlation_matrix <- correlation_matrix[
+    !apply(is.na(correlation_matrix), 1, all),
+    !apply(is.na(correlation_matrix), 2, all)
+]
+
+# plot the correlation matrix
+corrplot(
+    correlation_matrix,
+    method = "color",
+    tl.col = "black",
+    order = "hclust"
+)
+```
+
+Observations:
+
+* The correlation matrix shows that some weather variables are highly correlated with each other.
+* We shall remove some of these variables to avoid multicollinearity.
+* For example, we can remove the following variables:
+    * FeelsLikeC, HeatIndexC, WindChillC, minTempC, maxTempC (highly correlated with tempC, and derived from a combination of temperature, humidity, and wind speed)
+    * uvIndex...6 (highly correlated with uvIndex...7)
+
+### Feature-Response Correlation
+
+```{r}
+feature_vars <- c(
+    "sunHour", "uvIndex...7", "moon_illumination",
+    "DewPointC", "WindGustKmph", "cloudcover", "humidity",
+    "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph"
+)
+
+# calculate the correlation matrix
+correlation_matrix <- cor(
+    data_merged[, response_vars],
+    data_merged[, feature_vars],
+    use = "pairwise.complete.obs"
+)
+
+# plot the correlation matrix
+corrplot(
+    correlation_matrix,
+    method = "color",
+    tl.col = "black"
+)
+```
+
+Observations:
+
+* The correlation matrix shows that the weather variables are weakly correlated with the response variables.
+* However, we only used a linear correlation measure, there might be non-linear relationships.
+
+## Building a Model
+
+Let's build a linear regression model for each response variable using the weather variables as predictors. We will check for multicollinearity and evaluate the model.
+
+Since the data is from multiple cities, we will build separate models for each city.
+
+```{r}
+feature_vars <- c(
+    "sunHour", "uvIndex...7", "moon_illumination", "DewPointC", "WindGustKmph", "cloudcover",
+    "humidity", "precipMM", "pressure", "tempC", "visibility", "windspeedKmph", "day_of_week",
+    "month_of_year", "hour_cos", "hour_sin", "winddir_cos", "winddir_sin"
+)
+
+feature_importance <- list()
+
+for (city in city_name_map$air_quality) {
+    cat(paste("\nFitting models for", city, "\n"))
+
+    data_city <- data_merged %>%
+        filter(City == city)
+
+    for (var in response_vars) {
+        # cat(paste("Fitting model for", var))
+
+        model_formula <- paste(var, "~", paste(feature_vars, collapse = " + "))
+        model <- lm(model_formula, data = data_city)
+
+        # add the model to the list of feature importance
+        feature_importance_row <- data.frame(
+            feature = rownames(summary(model)$coefficients)[-1],
+            estimate = summary(model)$coefficients[-1, 1],
+            response_var = var,
+            city = city
+        )
+        rownames(feature_importance_row) <- NULL
+        feature_importance <- c(feature_importance, list(feature_importance_row))
+
+        # evaluate the model
+        cat(paste(city, var, ":", round(summary(model)$r.squared, 3), "\n"))
+    }
+}
+
+feature_importance <- bind_rows(feature_importance)
+
+# plot the feature importance
+ggplot(feature_importance, aes(x = estimate, y = feature, fill = response_var)) +
+    geom_bar(stat = "identity") +
+    facet_wrap(~ city) +
+    labs(title = "Feature Importance")
+```
+
+<!-- ## Multicollinearity -->
+
+```{r}
+# vif_rows <- list()
+# for (var in response_vars) {
+#     cat(paste("Checking for multicollinearity for", var, "\n"))
+
+#     # calculate the VIF for each predictor variable
+#     model <- lm(data_merged[[var]] ~ ., data = data_merged[, c(var, feature_vars)])
+#     vif_values <- car::vif(model)
+
+#     vif_row <- as.data.frame(t(vif_values[-1, 3]))
+#     vif_row[["response_var"]] <- var
+
+#     vif_rows <- c(vif_rows, list(vif_row))
+# }
+
+# vif_data <- bind_rows(vif_rows)
+# print(vif_data)
+```

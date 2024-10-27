@@ -1,4 +1,7 @@
 .DS_Store
+
+input/
+
 report.aux
 report.bbl
 report.bcf
