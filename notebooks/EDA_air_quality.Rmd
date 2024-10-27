@@ -21,12 +21,14 @@ In this analysis, we will explore the air quality data from various cities in In
 ```{r}
 library(ggplot2)
 library(googledrive)
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 library(readr)
 library(magrittr)
-library(tidyr)
+library(tidyr, warn.conflicts = FALSE)
 library(corrplot)
 library(caret)
+library(lubridate, warn.conflicts = FALSE)
+library(gridExtra, warn.conflicts = FALSE)
 ```
 
 ## Downloading Data
@@ -98,11 +100,6 @@ summary(data_air_quality)
 # % of NA by column
 cat("NA values by column:\n")
 sapply(data_air_quality, function(x) sum(is.na(x)) / length(x))
-
-# % of NA by column and city, rounded to 3 decimal places
-# sapply(data_air_quality, function(x) {
-#     sapply(split(x, data_air_quality$City), function(y) round(sum(is.na(y)) / length(y), 3))
-# })
 ```
 
 Observations:
@@ -115,32 +112,41 @@ Observations:
 
 ### Distribution of Response Variables
 
-```{r}
+```{r, fig.width=12, fig.height=16}
 # plot the distribution of the response variables
 response_vars <- c("PM2.5", "PM10", "NOx", "NH3", "CO", "SO2", "O3")
 
+plot_list <- list()
+
 for (var in response_vars) {
-    n_bins <- min(length(unique(data_air_quality[[var]])), 101)
+    non_na_data <- data_air_quality %>% filter(!is.na(.data[[var]]))
+    n_na <- sum(is.na(data_air_quality[[var]]))
 
     # color different cities differently
-    # and scale the x-axis logarithmically
-    p <- ggplot(data_air_quality, aes_string(x = var, fill = "City")) +
-        geom_histogram(bins = n_bins) +
-        scale_x_log10() +
-        labs(title = var)
+    # and scale the x-axis using a pseudo-log transformation
+    p <- ggplot(non_na_data, aes_string(x = var, fill = "City")) +
+        geom_histogram(bins = 100) +
+        scale_x_continuous(trans=scales::pseudo_log_trans(base = 10)) +
+        labs(title = var) +
+        # annotate in the upper right corner
+        annotate("text", x = Inf, y = Inf, hjust = 1, vjust = 1, label = paste("NA:", n_na))
 
-    print(p)
+    plot_list <- c(plot_list, list(p))
 }
+
+grid.arrange(grobs = plot_list, ncol = 2)
 ```
 
 Observations:
 
 * The distributions of the response variables are right-skewed with a long tail.
 
-### Time Series Analysis
+### Yearly Trend Analysis
 
-```{r}
-library(lubridate)
+Let's plot the monthly boxplots of the response variables for each city.
+
+```{r, fig.width=12, fig.height=20}
+plot_list <- list()
 
 # plot boxplots for the response variables by City and Month
 for (var in response_vars) {
@@ -148,16 +154,20 @@ for (var in response_vars) {
             data_air_quality,
             aes_string(x = "factor(month(Datetime))", y = var, fill = "City")
         ) +
-        geom_boxplot() +
+        geom_boxplot(outlier.shape = NA) +
+        scale_y_continuous(limits = quantile(data_air_quality[[var]], c(0.05, 0.95), na.rm=TRUE)) +
         labs(title = var)
 
-    print(p)
+    plot_list <- c(plot_list, list(p))
 }
+
+grid.arrange(grobs = plot_list, ncol = 1)
 ```
 
 Observations:
 
 * The response variables show some seasonal patterns.
+* Patterns are similar across cities, but the scale of the values is different.
 
 ### Loading Weather Data
 
@@ -171,7 +181,7 @@ for (city in city_name_map$weather) {
     this_data$City <- city_name_map$air_quality[city_name_map$weather == city]
     data_weather[[length(data_weather) + 1]] <- this_data
 
-    cat(paste("Loaded weather data for city", city, "\n"))
+    # cat(paste("Loaded weather data for city", city, "\n"))
 }
 
 data_weather <- bind_rows(data_weather)
@@ -190,7 +200,7 @@ Observations:
 
 ### Distribution of Weather Variables
 
-```{r}
+```{r, fig.width=12, fig.height=30}
 # plot the distribution of the weather variables
 weather_vars <- c(
     "maxtempC", "mintempC", "totalSnow_cm", "sunHour", "uvIndex...6", "uvIndex...7", "moon_illumination",
@@ -198,6 +208,7 @@ weather_vars <- c(
     "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph"
 )
 
+plot_list <- list()
 for (var in weather_vars) {
     col_is_int <- all(as.integer(data_weather[[var]]) == data_weather[[var]])
     n_unique <- length(unique(data_weather[[var]]))
@@ -208,7 +219,7 @@ for (var in weather_vars) {
             group_by(City, !!sym(var)) %>%
             summarise(n = n(), .groups = "drop") %>%
             ungroup()
-        
+
         # color different cities differently
         p <- ggplot(barplot_data, aes_string(x = var, y = "n", fill = "City")) +
             geom_bar(stat = "identity") +
@@ -220,11 +231,15 @@ for (var in weather_vars) {
             labs(title = var)
     }
 
-    print(p)
+    plot_list <- c(plot_list, list(p))
 }
+
+grid.arrange(grobs = plot_list, ncol = 2)
 ```
 
 ## Feature Engineering
+
+The response variables are right-skewed, we will use the log(y + 1) transformation to make the data more normally distributed.
 
 ```{r}
 # merge the air quality and weather data
@@ -254,6 +269,9 @@ data_merged$winddir_sin <- sin(2 * pi * data_merged$winddirDegree / 360)
 
 # convert the City variable to a factor
 data_merged$City <- factor(data_merged$City)
+
+# log(y + 1) transformation for the response variables
+data_merged[response_vars] <- log(data_merged[response_vars] + 1)
 ```
 
 Let's scale the numeric features to have zero mean and unit variance.
@@ -338,7 +356,7 @@ Let's build a linear regression model for each response variable using the weath
 
 Since the data is from multiple cities, we will build separate models for each city.
 
-```{r}
+```{r, fig.width=12, fig.height=16}
 feature_vars <- c(
     "sunHour", "uvIndex...7", "moon_illumination", "DewPointC", "WindGustKmph", "cloudcover",
     "humidity", "precipMM", "pressure", "tempC", "visibility", "windspeedKmph", "day_of_week",
@@ -356,8 +374,8 @@ for (city in city_name_map$air_quality) {
     for (var in response_vars) {
         # cat(paste("Fitting model for", var))
 
-        model_formula <- paste(var, "~", paste(feature_vars, collapse = " + "))
-        model <- lm(model_formula, data = data_city)
+        model <- lm(data_city[[var]] ~ ., data = data_city[, feature_vars])
+        # model <- lm(log(data_city[[var]] + 1) ~ ., data = data_city[, feature_vars])
 
         # add the model to the list of feature importance
         feature_importance_row <- data.frame(
@@ -377,9 +395,9 @@ for (city in city_name_map$air_quality) {
 feature_importance <- bind_rows(feature_importance)
 
 # plot the feature importance
-ggplot(feature_importance, aes(x = estimate, y = feature, fill = response_var)) +
+ggplot(feature_importance, aes(x = estimate, y = feature, fill = city)) +
     geom_bar(stat = "identity") +
-    facet_wrap(~ city) +
+    facet_wrap(~response_var, scales = "free") +
     labs(title = "Feature Importance")
 ```
 
