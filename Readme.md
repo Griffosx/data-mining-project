@@ -2,7 +2,7 @@
 
 ## Abstract
 
-Air pollution remains one of India's most pressing environmental challenges, significantly impacting public health, the economy, and climate change. This project aims to predict air pollution levels in India by developing a multivariate regression model using various predictors such as location, season, temperature, and other relevant environmental and socio-economic factors. By leveraging data mining techniques and analyzing existing literature, the study seeks to identify key determinants of air pollution and provide insights that could inform policy decisions and mitigation strategies.
+Air pollution remains one of India's most pressing environmental challenges, significantly impacting public health, the economy, and climate change. This project aims to predict air pollution levels in India by developing a multivariate regression model using various predictors such as location, season, weather data, temperature, and other relevant environmental and socio-economic factors. By leveraging data mining techniques and analyzing existing literature, the study seeks to identify key determinants of air pollution and provide insights that could inform policy decisions and mitigation strategies.
 
 ## Introduction
 
