@@ -15,6 +15,22 @@
 \usepackage{algorithm,algorithmic}
 \usepackage{soul} % highlight
 \usepackage{xcolor}
+\usepackage{listings}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{gray!5},        % Very very light gray background
+    basicstyle=\ttfamily\scriptsize,      % Typewriter font with smaller size
+    commentstyle=\color{gray},            % Comment color
+    keywordstyle=\color{blue},            % Keyword color
+    stringstyle=\color{red},              % String color
+    breaklines=true,                      % Automatically break long lines
+    frame=single,                         % Draw a frame around the code
+    rulecolor=\color{lightgray},          % Frame color set to light gray
+    showspaces=false,                     % Don't show spaces
+    showstringspaces=false,               % Don't show spaces in strings
+    showtabs=false,                       % Don't show tabs
+    tabsize=4                             % Set default tab size
+}
 
 \setcitestyle{square}
 
@@ -38,9 +54,9 @@
 
 \title{Predicting Air Pollution Levels in Five Major Indian Cities}
 
-\author{\name Aleksandr J. Smoliakov \email aleksandr.smoliakov@stud.mif.vu.lt \\
+\author{\name Aleksandr Jan Smoliakov \email aleksandr.smoliakov@mif.stud.vu.lt \\
   \name Danial Yntykbay \email danial.yntykbay@mif.stud.vu.lt \\
-  \name Davide Giuseppe Griffon \email davide.griffon@stud.mif.vu.lt \\
+  \name Davide Giuseppe Griffon \email davide.griffon@mif.stud.vu.lt \\
   \addr Data Science study programme\\
        Faculty of Mathematics and Informatics}
 
@@ -91,9 +107,9 @@ In another study, \citep{Suthar2024Annual} aimed to identify seasonal patterns a
 
 Expanding this line of research to European cities, \citep{Rowland2024} examined the relationship between meteorological parameters and the concentrations of NO\textsubscript{2}, O\textsubscript{3}, PM\textsubscript{10}, and PM\textsubscript{2.5} in Krakow, Paris, and Milan during 2021. The study found that NO\textsubscript{2}, PM\textsubscript{10}, and PM\textsubscript{2.5} concentrations were higher during winter and lower during summer, exhibiting negative correlations with temperature, while O\textsubscript{3} showed the opposite trend. Wind speed was inversely related to particulate matter and NO\textsubscript{2} levels but positively correlated with O\textsubscript{3} concentrations. These findings highlight the influence of meteorological conditions on pollutant levels and the occurrence of the “Ozone weekend effect” in these cities.
 
-Similarly, CITE HERE conducted research in urban areas of Belarus, concluding that anthropogenic pollution concentrations are generally high, while ozone levels are lower compared to rural areas. Seasonal patterns revealed higher pollution in autumn and winter, with increased dispersion of pollutants and ozone formation in spring and summer. The study observed daily pollution peaks occurring in the morning and evening, driven by human activities and affected by wind and atmospheric stability. The reduced dispersion efficiency during these periods, combined with higher emission intensities, contributes to these peaks.
+Speaking of temporal trends, \citep{bozhkova2020influence} conducted research in urban areas of Belarus. Seasonal patterns revealed higher pollution in autumn and winter, with increased dispersion of pollutants and ozone formation in spring and summer. The study observed daily pollution peaks occurring in the morning and evening, driven by human activities and affected by wind and atmospheric stability. The reduced dispersion efficiency during these periods, combined with higher emission intensities, contributes to these peaks.
 
-These studies collectively underscore the significant impact of meteorological factors on urban air pollution across diverse geographic regions. The consistent observations of pollutant behavior in relation to temperature, wind speed, and other meteorological parameters highlight the necessity of incorporating environmental conditions into air quality management and policy-making.
+These studies collectively underscore the significant impact of meteorological and temporal factors on urban air pollution across diverse geographic regions. The consistent observations of pollutant behavior in relation to temperature, wind speed, and other meteorological parameters highlight the necessity of incorporating environmental conditions into air quality management and policy-making.
 
 
 \subsection{Predictive Models}
@@ -108,11 +124,11 @@ Kothandaraman et al.\ \citep{Kothandaraman2022Intelligent} focused on predicting
 
 Kumar et al.\ \citep{Kumar2023} addressed the challenge of predicting the AQI by analyzing air pollution data from 23 Indian cities over six years. They carried out extensive data preprocessing, which involved handling missing values, correcting outliers, normalizing data, selecting features, and applying logarithmic transformations to fix skewed data. Their exploratory data analysis showed a significant decrease in pollution levels in 2020, likely due to COVID-19 lockdowns. To fix data imbalance, they used the Synthetic Minority Over-sampling Technique (SMOTE). They performed machine learning-based AQI predictions using various models, both with and without SMOTE resampling, and compared the results. The models were assessed using standard metrics like accuracy, precision, recall, F1-score, and error metrics (MAE, RMSE, RMSLE, $R^2$). The XGBoost model performed the best, achieving the highest accuracy in both training and testing phases, while the SVM model had the lowest accuracy. The Random Forest model also did well, especially when SMOTE was applied. The study emphasizes the effectiveness of ensemble learning methods in AQI prediction and suggests that future research could explore deep learning techniques to improve accuracy further.
 
-Roy et al.\ \citep{ROY20244106} conducted a study in the densely populated northern Indian states of Delhi, Haryana, and Uttar Pradesh, where air pollution is a critical concern. They analyzed PM${2.5}$ concentrations in relation to meteorological factors like maximum and minimum air temperatures, precipitation, surface pressure, and wind. The study applied Ordinary Least Squares (OLS) regression and Geographically Weighted Regression (GWR) to examine the complex relationships between PM${2.5}$ levels and various environmental and meteorological parameters across different seasons and locations. Initially, the OLS model was used to identify significant predictors of PM$_{2.5}$, showing strong correlations with $R^2$ values of 0.93 for summer and 0.94 for winter. Subsequently, GWR was implemented to assess how these relationships vary across different areas, providing deeper insight into the influence of meteorological and environmental factors across various geographical locations. The findings showed that GWR provided better model performance by accounting for spatial variability, highlighting the importance of considering geographical factors in air pollution modeling.
+Roy et al.\ \citep{ROY20244106} conducted a study in the densely populated northern Indian states of Delhi, Haryana, and Uttar Pradesh, analyzing PM${2.5}$ concentrations in relation to meteorological factors such as temperature, precipitation, surface pressure, and wind. They employed Ordinary Least Squares (OLS) regression and Geographically Weighted Regression (GWR) to explore the relationships between PM${2.5}$ levels and environmental parameters across different seasons and locations. The OLS model identified significant predictors with $R^2$ values of 0.93 for summer and 0.94 for winter, while GWR accounted for spatial variability, enhancing model performance and highlighting the importance of geographical factors in air pollution modeling. However, our study does not utilize geographical data and cannot replicate the GWR analysis by Roy et al. Instead, we focus on the overall relationships between PM${2.5}$ concentrations and meteorological factors without considering spatial variability.
 
-Building on the significance of feature engineering and advanced modeling techniques, ADD CITE emphasized the crucial role of feature engineering in time series prediction of air pollutants. They introduced a two-stage feature engineering and selection process that combines correlation-based selection with Variational Mode Decomposition (VMD). By developing and categorizing 22 new features into meteorological, temporal, statistical, and air pollutant types, their approach customizes optimal feature sets for each of the five major air pollutants. This customization enhances model performance by 1–5\% compared to traditional lag-based methods and further improves accuracy by 3–13\% when integrating VMD features. The optimized feature selection allows for simpler forecasting models with significant improvements in RMSE, MAE, and R\textsuperscript{2} scores. The methodology supports applications in urban planning and public health, facilitating evidence-based decision-making. Future research will focus on developing more integrated feature engineering techniques and exploring hybrid decomposition methods for longer-term forecasting.
+Building on the significance of feature engineering and advanced modeling techniques, \citep{naz2024twostage} emphasized the crucial role of feature engineering in time series prediction of air pollutants. They introduced a two-stage feature engineering and selection process that combines correlation-based selection with Variational Mode Decomposition (VMD). By developing and categorizing 22 new features into meteorological, temporal, statistical, and air pollutant types, their approach customizes optimal feature sets for each of the five major air pollutants. This customization enhances model performance by 1–5\% compared to traditional lag-based methods and further improves accuracy by 3–13\% when integrating VMD features. The optimized feature selection allows for simpler forecasting models with significant improvements in RMSE, MAE, and R\textsuperscript{2} scores.
 
-These studies demonstrate the effectiveness of various machine learning and statistical methods in predicting air pollution levels and AQI. Nonlinear models and ensemble learning techniques like Random Forest and XGBoost have shown high accuracy in forecasting pollutant concentrations and AQI. The incorporation of meteorological and geographical data significantly enhances model performance. For our study, which does not employ deep learning methods, these findings suggest that ensemble methods and regression techniques—especially those accounting for spatial variability—can serve as effective alternatives for accurate air quality prediction. Incorporating meteorological factors and addressing data imbalances may further improve prediction accuracy without the need for deep learning models.
+These studies demonstrate the effectiveness of various machine learning and statistical methods in predicting air pollution levels and AQI. Nonlinear models and ensemble learning techniques like Random Forest and XGBoost have shown high accuracy in forecasting pollutant concentrations and AQI. The incorporation of meteorological and temporal data significantly enhances model performance. For our study, which does not employ deep learning methods, these findings suggest that ensemble methods and regression techniques—especially those accounting for spatial variability—can serve as effective alternatives for accurate air quality prediction. Incorporating meteorological factors and addressing data imbalances may further improve prediction accuracy without the need for deep learning models.
 
 \newpage
 
@@ -139,6 +155,100 @@ Merging these two datasets is a strategic choice for several reasons. Firstly, i
 Furthermore, we extended the merged dataset by incorporating precise geographical coordinates for each of the five cities analyzed. Using the Google Maps API, we retrieved the exact latitude and longitude for each city, adding these as additional predictors in our model. Including geographic coordinates is expected to account for spatial dependencies and regional differences in pollution patterns, thereby potentially improving the model's predictive accuracy.
 
 In summary, the final dataset comprises hourly air quality measurements, detailed historical weather data, and geographical information for the mentioned Indian cities. This integrated dataset provides a robust foundation for developing a predictive model aimed at forecasting daily air pollution levels, balancing data comprehensiveness with manageability.
+
+\newpage
+
+
+% ---------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------
+
+
+\section{Initial Data Analysis}
+
+\subsection{Data Preprocessing and Feature Selection}
+
+Given the different sources of our data, we needed to filter and merge only the cities present in both datasets. Fortunately, all the cities selected for this project---Bengaluru (Bangalore), Delhi, Hyderabad, Jaipur, and Mumbai---are among the top ten most populous cities in India, including the top two.
+
+\textbf{Observations:}
+
+We identified 12 numeric columns that could serve as response variables: PM\textsubscript{2.5}, PM\textsubscript{10}, NO, NO\textsubscript{2}, NOx, NH\textsubscript{3}, CO, SO\textsubscript{2}, O\textsubscript{3}, Benzene, Toluene, and Xylene. The \textbf{Air Quality Index (AQI)} is a standardized measure that quantifies the overall air quality based on the concentrations of these pollutants. Since the AQI is derived from these pollutants, we chose not to use AQI itself as a response variable.
+
+All these numeric columns have up to 55\% missing values. Therefore, we decided to focus on the pollutants with the most complete data: PM\textsubscript{2.5}, PM\textsubscript{10}, NOx, NH\textsubscript{3}, CO, SO\textsubscript{2}, and O\textsubscript{3}.
+
+As an initial analysis, we created stacked histograms for the selected pollutants, with each segment representing a different city.
+An example can be see in Figures~\ref{fig:pm10_by_city}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{pm10-by-city.png}
+    \caption{PM\textsubscript{10} levels by city}
+    \label{fig:pm10_by_city}
+\end{figure}
+
+
+\subsection{Time Series Analysis}
+
+We analyzed whether the time of year affects pollution levels. Although we only present the graph for O\textsubscript{3} pollution, all pollutants exhibit similar behavior: pollution levels tend to be lower during the summer months, from July to September.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{o3-by-month.png}
+    \caption{O\textsubscript{3} levels by month}
+    \label{fig:o3_by_month}
+\end{figure}
+
+\subsection{Correlation Analysis}
+
+We conducted a correlation analysis to examine the relationships among the weather variables and between the features and response variables.
+
+First, we calculated the correlation matrix for the weather variables:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{correlation-matrix.png}
+    \caption{Correlation matrix of weather variables}
+    \label{fig:correlation_matrix}
+\end{figure}
+
+\textbf{Observations:}
+
+The correlation matrix (Figure~\ref{fig:correlation_matrix}) shows that some weather variables are highly correlated with each other. To avoid multicollinearity, we decided to remove variables such as \textit{FeelsLikeC}, \textit{HeatIndexC}, \textit{WindChillC}, \textit{minTempC}, and \textit{maxTempC}, which are highly correlated with \textit{tempC} and are derived from combinations of temperature, humidity, and wind speed. Similarly, \textit{humidity} is correlated with \textit{DewPointC}, and certain UV index variables are highly correlated.
+
+Next, we analyzed the correlation between features and response variables:
+
+\begin{lstlisting}[language=R]
+feature_vars <- c(
+    "sunHour", "uvIndex", "moon_illumination",
+    "DewPointC", "WindGustKmph", "cloudcover", "humidity",
+    "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph"
+)
+
+# Calculate the correlation matrix
+correlation_matrix <- cor(
+    data_merged[, response_vars],
+    data_merged[, feature_vars],
+    use = "pairwise.complete.obs"
+)
+
+# Plot the correlation matrix
+corrplot(
+    correlation_matrix,
+    method = "color",
+    tl.col = "black"
+)
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{feature-response-correlation.png}
+    \caption{Correlation between features and response variables}
+    \label{fig:feature_response_correlation}
+\end{figure}
+
+\textbf{Observations:}
+
+The correlation matrix (Figure~\ref{fig:feature_response_correlation}) indicates that the weather variables are weakly correlated with the response variables. However, since we only used a linear correlation measure, there may be non-linear relationships that are not captured in this analysis.
 
 \newpage
 
