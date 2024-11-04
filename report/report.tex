@@ -16,6 +16,7 @@
 \usepackage{soul} % highlight
 \usepackage{xcolor}
 \usepackage{listings}
+\usepackage[normalem]{ulem}
 
 \lstdefinestyle{mystyle}{
     backgroundcolor=\color{gray!5},        % Very very light gray background
@@ -145,9 +146,9 @@ These studies demonstrate the effectiveness of various machine learning and stat
 This project utilizes two primary sources of data to analyze air pollution levels across five major Indian cities:
 
 \begin{itemize}
-    \item \textbf{Air Quality Data in India}: Available at \href{https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india}{Kaggle}. This dataset provides hourly measurements of various air pollutants and particulate matter. The data is collected from multiple weather stations located within each of the five major cities. Recognizing these larger cities may have several monitoring stations to capture spatial variability in air quality, we aggregate the pollutant levels by averaging the measurements from all stations within a city for each hour. This averaging process ensures that the data represents the overall air quality of the city rather than isolated monitoring points.
+    \item \textbf{Air Quality Data in India}: Available at \href{https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india}{\uline{Kaggle}}. This dataset provides hourly measurements of various air pollutants and particulate matter. The data is collected from multiple weather stations located within each of the five major cities. Recognizing these larger cities may have several monitoring stations to capture spatial variability in air quality, we aggregate the pollutant levels by averaging the measurements from all stations within a city for each hour. This averaging process ensures that the data represents the overall air quality of the city rather than isolated monitoring points.
 
-    \item \textbf{Historical Weather Data for Indian Cities}: Available at \href{https://www.kaggle.com/datasets/hiteshsoneji/historical-weather-data-for-indian-cities}{Kaggle}. This dataset includes hourly weather-related features for the same set of cities, encompassing over 20 variables such as precipitation (mm), wind speed, temperature, humidity, and other meteorological parameters. \citep{hitesh_soneji_2020}
+    \item \textbf{Historical Weather Data for Indian Cities}: Available at \href{https://www.kaggle.com/datasets/hiteshsoneji/historical-weather-data-for-indian-cities}{\uline{Kaggle}}. This dataset includes hourly weather-related features for the same set of cities, encompassing over 20 variables such as precipitation (mm), wind speed, temperature, humidity, and other meteorological parameters. \citep{hitesh_soneji_2020}
 \end{itemize}
 
 Merging these two datasets is a strategic choice for several reasons. Firstly, it allows for a comprehensive analysis of the relationship between air pollution levels and various weather conditions. By integrating pollutant concentrations with corresponding meteorological data, we can better understand how factors like temperature, wind speed, and precipitation influence air quality. This holistic approach enhances the model's ability to capture the multifaceted nature of air pollution dynamics.
@@ -156,99 +157,6 @@ Furthermore, we extended the merged dataset by incorporating precise geographica
 
 In summary, the final dataset comprises hourly air quality measurements, detailed historical weather data, and geographical information for the mentioned Indian cities. This integrated dataset provides a robust foundation for developing a predictive model aimed at forecasting daily air pollution levels, balancing data comprehensiveness with manageability.
 
-\newpage
-
-
-% ---------------------------------------------------------------------------------------
-% ---------------------------------------------------------------------------------------
-% ---------------------------------------------------------------------------------------
-
-
-\section{Initial Data Analysis}
-
-\subsection{Data Preprocessing and Feature Selection}
-
-Given the different sources of our data, we needed to filter and merge only the cities present in both datasets. Fortunately, all the cities selected for this project---Bengaluru (Bangalore), Delhi, Hyderabad, Jaipur, and Mumbai---are among the top ten most populous cities in India, including the top two.
-
-\textbf{Observations:}
-
-We identified 12 numeric columns that could serve as response variables: PM\textsubscript{2.5}, PM\textsubscript{10}, NO, NO\textsubscript{2}, NOx, NH\textsubscript{3}, CO, SO\textsubscript{2}, O\textsubscript{3}, Benzene, Toluene, and Xylene. The \textbf{Air Quality Index (AQI)} is a standardized measure that quantifies the overall air quality based on the concentrations of these pollutants. Since the AQI is derived from these pollutants, we chose not to use AQI itself as a response variable.
-
-All these numeric columns have up to 55\% missing values. Therefore, we decided to focus on the pollutants with the most complete data: PM\textsubscript{2.5}, PM\textsubscript{10}, NOx, NH\textsubscript{3}, CO, SO\textsubscript{2}, and O\textsubscript{3}.
-
-As an initial analysis, we created stacked histograms for the selected pollutants, with each segment representing a different city.
-An example can be see in Figures~\ref{fig:pm10_by_city}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{pm10-by-city.png}
-    \caption{PM\textsubscript{10} levels by city}
-    \label{fig:pm10_by_city}
-\end{figure}
-
-
-\subsection{Time Series Analysis}
-
-We analyzed whether the time of year affects pollution levels. Although we only present the graph for O\textsubscript{3} pollution, all pollutants exhibit similar behavior: pollution levels tend to be lower during the summer months, from July to September.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{o3-by-month.png}
-    \caption{O\textsubscript{3} levels by month}
-    \label{fig:o3_by_month}
-\end{figure}
-
-\subsection{Correlation Analysis}
-
-We conducted a correlation analysis to examine the relationships among the weather variables and between the features and response variables.
-
-First, we calculated the correlation matrix for the weather variables:
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{correlation-matrix.png}
-    \caption{Correlation matrix of weather variables}
-    \label{fig:correlation_matrix}
-\end{figure}
-
-\textbf{Observations:}
-
-The correlation matrix (Figure~\ref{fig:correlation_matrix}) shows that some weather variables are highly correlated with each other. To avoid multicollinearity, we decided to remove variables such as \textit{FeelsLikeC}, \textit{HeatIndexC}, \textit{WindChillC}, \textit{minTempC}, and \textit{maxTempC}, which are highly correlated with \textit{tempC} and are derived from combinations of temperature, humidity, and wind speed. Similarly, \textit{humidity} is correlated with \textit{DewPointC}, and certain UV index variables are highly correlated.
-
-Next, we analyzed the correlation between features and response variables:
-
-\begin{lstlisting}[language=R]
-feature_vars <- c(
-    "sunHour", "uvIndex", "moon_illumination",
-    "DewPointC", "WindGustKmph", "cloudcover", "humidity",
-    "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph"
-)
-
-# Calculate the correlation matrix
-correlation_matrix <- cor(
-    data_merged[, response_vars],
-    data_merged[, feature_vars],
-    use = "pairwise.complete.obs"
-)
-
-# Plot the correlation matrix
-corrplot(
-    correlation_matrix,
-    method = "color",
-    tl.col = "black"
-)
-\end{lstlisting}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\textwidth]{feature-response-correlation.png}
-    \caption{Correlation between features and response variables}
-    \label{fig:feature_response_correlation}
-\end{figure}
-
-\textbf{Observations:}
-
-The correlation matrix (Figure~\ref{fig:feature_response_correlation}) indicates that the weather variables are weakly correlated with the response variables. However, since we only used a linear correlation measure, there may be non-linear relationships that are not captured in this analysis.
 
 \newpage
 
