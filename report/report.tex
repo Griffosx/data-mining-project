@@ -43,6 +43,13 @@
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
 
+\makeatletter
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+  {-3.25ex\@plus -1ex \@minus -.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\bfseries\normalsize}}
+\makeatother
+
 % Heading arguments are {volume}{year}{pages}{submitted}{published}{author-full-names}
 \jmlrheading{}{2024}{}{}{}{Griffon, Smoliakov, Yntykbay}
 
@@ -157,7 +164,7 @@ To extract meaningful insights, it was necessary to merge these datasets, linkin
 
 Looking ahead to our modeling approach, we envisioned using the rich meteorological data, combined with temporal features (such as hour of day and month of year) and the city names as predictors for air quality data. This framework allows us to explore how various environmental factors contribute to air pollution patterns and potentially forecast air quality under different weather scenarios.
 
-In the following subsections, we delve deeper into our feature selection process, detailing how we identified the most relevant predictors from our merged dataset. We also explore our feature engineering methodology, which helped us capture complex temporal and spatial patterns in our data. Finally, we present our preliminary analysis of the response variables, setting the stage for our subsequent modeling efforts.
+In the following subsections, we first examine our response variables, analyzing the various pollutants and their distributions in our dataset. We then explore the weather features, detailing how we identified the most relevant predictors from our merged dataset. Finally, we present our feature engineering methodology, which helped us capture complex temporal and spatial patterns in our data, setting the stage for our subsequent modeling efforts.
 
 
 \subsection{Response Variable Selection}
@@ -170,12 +177,12 @@ To maintain data integrity and avoid potential biases, we chose to handle missin
 
 \subsubsection{Distribution Analysis and Transformation}
 
-Initial exploratory analysis revealed that the distributions of these pollutants exhibited strong right-skewed patterns across all five cities, as illustrated in Figure \ref{fig:skewness}. This visualization clearly demonstrates the asymmetric nature of pollutant concentrations, with a high frequency of lower values and a long tail extending towards higher concentrations.
+Initial exploratory analysis revealed that the distributions of these pollutants exhibited strongly right-skewed patterns across all five cities. Figure \ref{fig:skewness} illustrates this pattern for three representative pollutants, but the same asymmetric distribution was observed across all pollutants, characterized by a high frequency of lower values and a long tail extending toward higher concentrations.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\textwidth]{skewness.png}
-  \caption{PM\textsubscript{10} levels by city}
+  \caption{Pollutants levels by city}
   \label{fig:skewness}
 \end{figure}
 
@@ -184,7 +191,7 @@ To address this skewness and make the data more suitable for statistical analysi
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.7\textwidth]{log-scaled-pollutants.png}
-  \caption{PM\textsubscript{10} levels by city}
+  \caption{Pollutants levels by city in a logarithmic scale}
   \label{fig:log_scaled_pollutants}
 \end{figure}
 
