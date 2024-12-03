@@ -141,25 +141,125 @@ These studies demonstrate the effectiveness of various machine learning and stat
 
 
 
-\section{Data Sources}
+\section{Exploratory Data Analysis}
 
-This project utilizes two primary sources of data to analyze air pollution levels across five major Indian cities:
+\subsection{Data Source}
+
+This project used two primary sources of data to analyze air pollution levels across five major Indian cities:
 
 \begin{itemize}
-    \item \textbf{Air Quality Data in India}: Available at \href{https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india}{\uline{Kaggle}}. This dataset provides hourly measurements of various air pollutants and particulate matter. The data is collected from multiple weather stations located within each of the five major cities. Recognizing these larger cities may have several monitoring stations to capture spatial variability in air quality, we aggregate the pollutant levels by averaging the measurements from all stations within a city for each hour. This averaging process ensures that the data represents the overall air quality of the city rather than isolated monitoring points.
+    \item \textbf{Air Quality Data in India}: Available at \href{https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india}{\uline{Kaggle}}. This dataset provides hourly measurements of various air pollutants and particulate matter. The data is collected from multiple weather stations located within each of the five major cities.
 
     \item \textbf{Historical Weather Data for Indian Cities}: Available at \href{https://www.kaggle.com/datasets/hiteshsoneji/historical-weather-data-for-indian-cities}{\uline{Kaggle}}. This dataset includes hourly weather-related features for the same set of cities, encompassing over 20 variables such as precipitation (mm), wind speed, temperature, humidity, and other meteorological parameters. \citep{hitesh_soneji_2020}
 \end{itemize}
 
-Merging these two datasets is a strategic choice for several reasons. Firstly, it allows for a comprehensive analysis of the relationship between air pollution levels and various weather conditions. By integrating pollutant concentrations with corresponding meteorological data, we can better understand how factors like temperature, wind speed, and precipitation influence air quality. This holistic approach enhances the model's ability to capture the multifaceted nature of air pollution dynamics.
+To extract meaningful insights, it was necessary to merge these datasets, linking the meteorological variables from the second dataset with the air quality measurements from the first. This integration allowed us to analyze how environmental factors such as temperature, wind speed, and precipitation interact with pollutant concentrations over time. The merging process focused on aligning data by city names and hourly timestamps, ensuring that weather features corresponded accurately to pollution levels. This alignment was essential for preserving the temporal and spatial consistency of our analysis. While the original datasets contained information for additional cities, we focused our analysis on the five metropolitan areas where we had complete coverage across both datasets.
 
-Furthermore, we extended the merged dataset by incorporating precise geographical coordinates for each of the five cities analyzed. Using the Google Maps API, we retrieved the exact latitude and longitude for each city, adding these as additional predictors in our model. Including geographic coordinates is expected to account for spatial dependencies and regional differences in pollution patterns, thereby potentially improving the model's predictive accuracy.
+Looking ahead to our modeling approach, we envisioned using the rich meteorological data, combined with temporal features (such as hour of day and month of year) and the city names as predictors for air quality data. This framework allows us to explore how various environmental factors contribute to air pollution patterns and potentially forecast air quality under different weather scenarios.
 
-In summary, the final dataset comprises hourly air quality measurements, detailed historical weather data, and geographical information for the mentioned Indian cities. This integrated dataset provides a robust foundation for developing a predictive model aimed at forecasting daily air pollution levels, balancing data comprehensiveness with manageability.
+In the following subsections, we delve deeper into our feature selection process, detailing how we identified the most relevant predictors from our merged dataset. We also explore our feature engineering methodology, which helped us capture complex temporal and spatial patterns in our data. Finally, we present our preliminary analysis of the response variables, setting the stage for our subsequent modeling efforts.
+
+
+\subsection{Response Variable Selection}
+
+The pollution dataset contained twelve potential response variables measuring different air quality parameters: PM\textsubscript{2.5}, PM\textsubscript{10}, NO, NO\textsubscript{2}, NOx, NH\textsubscript{3}, CO, SO\textsubscript{2}, O\textsubscript{3}, Benzene, Toluene, and Xylene. While we initially considered calculating and using the Air Quality Index (AQI) as a comprehensive response variable, this approach proved impractical due to the dataset's structure. The AQI calculation requires complete data across multiple pollutants, and the presence of missing values in our dataset would have significantly limited our ability to compute this index accurately.
+
+After careful consideration of data completeness and relevance, we narrowed our focus to seven key pollutants that demonstrated the most complete records: PM\textsubscript{2.5}, PM\textsubscript{10}, NOx, NH\textsubscript{3}, CO, SO\textsubscript{2}, and O\textsubscript{3}. The analysis of missing data revealed varying degrees of incompleteness across these pollutants, with CO showing the lowest proportion at 4\% missing values, followed by NOx at 9\%, SO\textsubscript{2} at 19\%, PM\textsubscript{2.5} and O\textsubscript{3} both at approximately 20\%, PM\textsubscript{10} at 26\%, and NH\textsubscript{3} showing the highest proportion at 30\% missing values.
+
+To maintain data integrity and avoid potential biases, we chose to handle missing values through complete case deletion rather than imputation. This decision was supported by the large volume of available data in our merged dataset, which allowed us to maintain a robust sample size even after removing incomplete records. We applied this deletion approach consistently across both air quality parameters and meteorological features to ensure data consistency.
+
+\subsubsection{Distribution Analysis and Transformation}
+
+Initial exploratory analysis revealed that the distributions of these pollutants exhibited strong right-skewed patterns across all five cities, as illustrated in Figure \ref{fig:skewness}. This visualization clearly demonstrates the asymmetric nature of pollutant concentrations, with a high frequency of lower values and a long tail extending towards higher concentrations.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{skewness.png}
+  \caption{PM\textsubscript{10} levels by city}
+  \label{fig:skewness}
+\end{figure}
+
+To address this skewness and make the data more suitable for statistical analysis, we applied a logarithmic transformation to all pollutant measurements. Since logarithmic transformation requires strictly positive values, we added a constant of 1 to each measurement before applying the transformation. The effectiveness of this transformation is demonstrated in Figure \ref{fig:log_scaled_pollutants}, where the transformed distributions more closely approximate normal distributions, providing a more suitable basis for our subsequent analyses.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{log-scaled-pollutants.png}
+  \caption{PM\textsubscript{10} levels by city}
+  \label{fig:log_scaled_pollutants}
+\end{figure}
+
+\subsubsection{Temporal Patterns Analysis}
+
+Further investigation of temporal patterns revealed distinct seasonal trends in pollutant concentrations, particularly for PM\textsubscript{2.5} and PM\textsubscript{10}, as shown in Figure \ref{fig:seasonal_trends}. A notable pattern emerged during the monsoon months (July to September), where consistently lower concentrations were observed across all cities. Among the cities studied, Delhi consistently exhibited higher pollutant concentrations throughout the year. These temporal patterns suggested the importance of incorporating seasonal factors into our modeling approach, leading to the creation of a "month" feature as a potential predictor variable.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{seasonal-trends.png}
+  \caption{PM\textsubscript{10} levels by city}
+  \label{fig:seasonal_trends}
+\end{figure}
+
+\subsection{Predictor Selection}
+
+Having completed our analysis of the pollutant response variables and their distributions, we turned our attention to examining the meteorological predictors in our dataset. Before applying formal feature selection methods, we conducted a thorough correlation analysis of the meteorological data to understand the relationships between weather variables. The correlation matrix visualization (Figure~\ref{fig:correlation_matrix}) revealed several significant relationships between weather parameters. Some of the key findings were as follows:
+
+\begin{itemize}
+    \item \textit{FeelsLikeC}, \textit{HeatIndexC}, \textit{WindChillC}, \textit{minTempC}, and \textit{maxTempC} were strongly correlated with \textit{tempC}, as expected, given that they are derived from temperature and related variables.
+    \item Features like \textit{sunHour} and \textit{uvIndex} were also correlated with temperature-related variables.
+    \item \textit{Humidity} was positively correlated with \textit{DewPointC} and \textit{cloudcover}, while inversely correlated with temperature-related variables.
+    \item \textit{Pressure} was inversely correlated with temperature-related variables and showed slight correlations with several other features, suggesting that pressure is influenced by other meteorological factors.
+    \item \textit{Visibility} exhibited slight positive correlations with temperature-related variables and inverse correlations with \textit{humidity}, \textit{cloudcover}, \textit{precipitation}, and \textit{DewPointC}.
+    \item \textit{Windspeed} and \textit{windgust} were strongly correlated with each other.
+    \item \textit{MoonIllumination} was not correlated with any other variable, as expected.
+\end{itemize}
+
+Following this, we analyzed the correlation between the selected features (those obtained after removing the highly correlated ones identified in the previous analysis) and the response variables to assess their potential predictive power. The resulting correlation analysis is visualized in Figure~\ref{fig:feature_response_correlation}.
+
+The analysis revealed the following:
+\begin{itemize}
+    \item \textit{Humidity}, \textit{windspeed}, \textit{cloudcover}, and \textit{DewPointC} were correlated with all but the CO pollutant, with the strongest correlations observed with particulate matter (\textit{Pm10} and \textit{Pm2.5}).
+    \item \textit{O3} was slightly negatively correlated with \textit{uvIndex} and \textit{tempC}, while being slightly positively correlated with \textit{humidity}, \textit{windspeed}, \textit{cloudcover}, and \textit{DewPointC}.
+    \item \textit{CO} showed no significant correlation with any of the selected weather features.
+    \item \textit{MoonIllumination} was not correlated with any variable, as expected.
+\end{itemize}
+
+However, since this analysis relied solely on linear correlation measures, it is possible that important non-linear relationships remain undetected. To capture such relationships, advanced techniques like non-linear modeling or feature transformations were performed in subsequent steps.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.7\textwidth]{correlation-matrix.png}
+  \caption{Correlation matrix of weather variables.}
+  \label{fig:correlation_matrix}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{feature-response-correlation.png}
+    \caption{Correlation between weather features and response variables.}
+    \label{fig:feature_response_correlation}
+\end{figure}
+
+
+\subsection{Feature Engineering}
+
+Our feature engineering process focused on creating meaningful derived variables that could capture complex temporal patterns and weather-related phenomena not directly represented in the raw data. These engineered features proved to be highly effective in improving our model's predictive performance.
+
+\subsubsection{Temporal Features}
+
+To capture the cyclical nature of air pollution patterns, we developed several temporal features from the datetime information. First, we created a categorical feature for the hour of the day (\textit{hour\_of\_day}, ranging from 0 to 23). To properly represent the circular nature of time, we then transformed this hour variable into two continuous features using trigonometric functions: $\textit{hour\_cos} = \cos(2\pi \times \text{hour}/24)$ and $\textit{hour\_sin} = \sin(2\pi \times \text{hour}/24)$. This cyclic encoding ensures that hour 23 is correctly represented as being close to hour 0. Additionally, we created categorical variables for the day of the week (\textit{day\_of\_week}, ranging from 1 to 7) and month of the year (\textit{month\_of\_year}, ranging from 1 to 12) to capture weekly and seasonal patterns in pollution levels.
+
+\subsubsection{Weather-Related Features}
+
+For weather data, we implemented several sophisticated transformations. Wind direction, originally measured in degrees (0-359), was converted into two continuous features using sine and cosine transformations: $\textit{winddir\_cos} = \cos(2\pi \times \text{degree}/360)$ and $\textit{winddir\_sin} = \sin(2\pi \times \text{degree}/360)$. This cyclic encoding ensured that directions like 359° and 0° were appropriately represented as being nearly identical, which would not be the case with raw degree values.
+
+A key feature that emerged from our literature review was the significant impact of precipitation on pollution levels during rainy seasons. To capture this effect, we developed a cumulative precipitation feature (\textit{precipMM\_cumsum\_24h}) that calculates the total rainfall over the previous 24 hours for each city. This feature proved to be particularly effective in our final model, helping to capture how sustained rainfall patterns affect pollutant concentrations. Similarly, we created a 24-hour cumulative wind speed feature (\textit{windspeedKmph\_cumsum\_24h}) to account for the sustained impact of wind on pollutant dispersion.
+
+Additionally, we normalized sunrise times (\textit{sunrise\_normalized}) to account for seasonal variations in daylight patterns, scaling the values between 0 and 1 to allow for better comparability across different seasons and cities. This normalization helped capture the influence of varying daylight patterns on pollution accumulation and dispersion.
+
+These engineered features, particularly the temporal cyclic encodings and the 24-hour cumulative precipitation metric, significantly enhanced our model's ability to capture complex patterns in air pollution levels. The effectiveness of these features suggests that both the cyclic nature of pollution patterns and the sustained impact of weather conditions play crucial roles in determining air quality levels.
 
 
 \newpage
-
 
 
 % ---------------------------------------------------------------------------------------
