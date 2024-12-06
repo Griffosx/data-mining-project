@@ -109,14 +109,31 @@ print_missing_values <- function(data, dataset_name) {
   print(round(missing[missing > 0], 2))
 }
 
-# Modeling Functions
 prepare_model_data <- function(data, target_var, predictors) {
-  data %>%
-    filter(!is.na(!!sym(target_var)) & !!sym(target_var) > 0) %>%
+  target_sym <- sym(target_var)
+  
+  transformed_data <- data %>%
+    filter(!is.na(!!target_sym)) %>%  # Remove only NA values
+    mutate(!!target_sym := !!target_sym + 1) %>%  # Add 1 to target variable
+    select(all_of(c(target_var, "City", "Datetime", predictors))) %>%
+    group_by(City) %>%
+    mutate(across(all_of(predictors), ~ifelse(is.na(.), median(., na.rm = TRUE), .))) %>%
+    ungroup() %>%
     mutate(
-      target_log = log(!!sym(target_var))
+      target_log = log(!!target_sym),
+      year = as.numeric(format(Datetime, "%Y"))
     ) %>%
-    select(all_of(c("target_log", "City", predictors)))
+    select(-!!target_sym, -Datetime) %>%
+    na.omit()
+  
+  list(
+    train = transformed_data %>% 
+      filter(year < 2019) %>%
+      select(-year),
+    test = transformed_data %>% 
+      filter(year == 2019) %>%
+      select(-year)
+  )
 }
 
 plot_predictions <- function(predictions, city, target_var) {
@@ -135,72 +152,8 @@ plot_predictions <- function(predictions, city, target_var) {
     )
 }
 
-# Modify prepare_model_data to be dynamic
-prepare_model_data <- function(data, target_var, predictors) {
-  target_sym <- sym(target_var)
-  
-  data %>%
-    filter(!is.na(!!target_sym) & !!target_sym > 0) %>%
-    select(all_of(c(target_var, "City", predictors))) %>%
-    group_by(City) %>%
-    mutate(across(all_of(predictors), ~ifelse(is.na(.), median(., na.rm = TRUE), .))) %>%
-    ungroup() %>%
-    mutate(target_log = log(!!target_sym)) %>%
-    select(-!!target_sym) %>%
-    na.omit()  # Remove any remaining rows with NAs
-}
-
-# Main Execution
-
-load_libraries()
-
-# Load and prepare data
-air_quality <- load_air_quality_data(
-  config$input_dir,
-  config$city_mapping,
-  config$date_range$end
-)
-
-weather <- load_weather_data(
-  config$input_dir,
-  config$city_mapping,
-  config$date_range
-)
-
-# Merge and engineer features
-data <- inner_join(
-  air_quality,
-  weather,
-  by = c("City", "Datetime" = "date_time")
-) %>%
-  create_temporal_features() %>%
-  create_weather_features()
-
-# Define model variables
-predictors <- c(
-  "FeelsLikeC", "winddir_cos", "winddir_sin",
-  "sunrise_normalized", "precipMM_cumsum_24h",
-  "windspeedKmph_cumsum_24h"
-)
-
-target_var = "PM10"
-
-# Prepare modeling data
-model_data <- prepare_model_data(data, target_var, predictors)
-
-# Split data
-set.seed(123)
-train_idx <- createDataPartition(
-  model_data$target_log,
-  p = config$model_params$train_split,
-  list = FALSE
-)
-train_data <- model_data[train_idx, ]
-test_data <- model_data[-train_idx, ]
-
 # Train and evaluate models for each city
 train_city <- function(city, train_data, test_data, predictors, target_var, model_params) {
-  # Filter data for specific city
   train_city_data <- train_data %>% 
     filter(City == city) %>% 
     select(-City)
@@ -209,7 +162,6 @@ train_city <- function(city, train_data, test_data, predictors, target_var, mode
     filter(City == city) %>% 
     select(-City)
   
-  # Error checking
   if (nrow(train_city_data) == 0) {
     stop(paste("No training data available for city:", city))
   }
@@ -218,7 +170,6 @@ train_city <- function(city, train_data, test_data, predictors, target_var, mode
     stop("One or more columns contain all NA values")
   }
   
-  # Train model
   model <- train(
     target_log ~ .,
     data = train_city_data,
@@ -231,12 +182,10 @@ train_city <- function(city, train_data, test_data, predictors, target_var, mode
     ntree = model_params$ntrees
   )
   
-  # Make predictions and evaluate
   pred_log <- predict(model, newdata = test_city_data)
-  pred <- exp(pred_log)
-  actual <- exp(test_city_data$target_log)
+  pred <- exp(pred_log) - 1  # Subtract 1 to reverse the +1 adjustment
+  actual <- exp(test_city_data$target_log) - 1  # Subtract 1 here as well
   
-  # Calculate metrics
   evaluation <- list(
     metrics = data.frame(
       City = city,
@@ -256,9 +205,125 @@ train_city <- function(city, train_data, test_data, predictors, target_var, mode
 }
 
 
+# Main Execution
+
+load_libraries()
+
+# Load and prepare data
+air_quality <- load_air_quality_data(
+  config$input_dir,
+  config$city_mapping,
+  config$date_range$end
+)
+
+weather <- load_weather_data(
+  config$input_dir,
+  config$city_mapping,
+  config$date_range
+)
+
+# Merge features and add year column
+data <- inner_join(
+  air_quality,
+  weather,
+  by = c("City", "Datetime" = "date_time")
+) %>%
+  create_temporal_features() %>%
+  create_weather_features()
+
+View(data)
+
+# Define model variables
+predictors <- c(
+  "tempC", "winddir_cos", "winddir_sin",
+  "sunrise_normalized", "precipMM_cumsum_24h",
+  "windspeedKmph_cumsum_24h"
+)
+
+target_var = "PM10"
+
+
+# Prepare modeling data
+#model_data <- prepare_model_data(data, target_var, predictors) %>%
+#  mutate(year = as.numeric(format(data$Datetime[match(row_number(), row_number())], "%Y")))
+
+# prepare_modeling_data <- function(data, target_var, predictors) {
+#   model_data <- prepare_model_data(data, target_var, predictors)
+#   
+#   list(
+#     train = model_data %>% 
+#       filter(year < 2019) %>%
+#       select(-year),
+#     test = model_data %>% 
+#       filter(year == 2019) %>%
+#       select(-year)
+#   )
+# }
+
+
+split_data <- prepare_model_data(data, target_var, predictors)
+train_data <- split_data$train
+test_data <- split_data$test
+
+test_data
+train_data
+
+
+print_target_statistics <- function(data, target_vars, predictors) {
+  for(target in target_vars) {
+    split_data <- prepare_model_data(data, target, predictors)
+    train_data <- split_data$train
+    test_data <- split_data$test
+
+    cat("\n=== Statistics for", target, "===\n")
+    
+    cat("\nCity Distribution for", target, "in training set:\n")
+    print(table(train_data$City))
+    
+    cat("\nCity Distribution for", target, "in test set:\n")
+    print(table(test_data$City))
+  }
+}
+
+
+targets <- list("PM10", "PM2.5")
+print_target_statistics(data, targets, predictors)
+
+# Split data
+# set.seed(123)
+# train_idx <- createDataPartition(
+#   model_data$target_log,
+#   p = config$model_params$train_split,
+#   list = FALSE
+# )
+# train_data <- model_data[train_idx, ]
+# test_data <- model_data[-train_idx, ]
+
+
+
 bangalore_results = train_city("Bengaluru", train_data, test_data, predictors, target_var, config$model_params)
 bangalore_plot <- plot_predictions(bangalore_results$evaluation$predictions, "Bengaluru", target_var)
 bangalore_plot
+
+bangalore_results
+
+city = "Delhi"
+
+train_city_data <- train_data %>% 
+  filter(City == city) %>% 
+  select(-City)
+train_city_data
+
+test_city_data <- test_data %>% 
+  filter(City == city) %>% 
+  select(-City)
+test_city_data
+
+predictors_with_months <- c(
+  "tempC", "winddir_cos", "winddir_sin",
+  "sunrise_normalized", "precipMM_cumsum_24h",
+  "windspeedKmph_cumsum_24h"
+)
 
 
 delhi_results = train_city("Delhi", train_data, test_data, predictors, target_var, config$model_params)
@@ -323,3 +388,4 @@ combined_plot <- ggplot(all_predictions, aes(x = actual, y = predicted, color = 
 # Print results
 print(final_metrics)
 print(combined_plot)
+
