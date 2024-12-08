@@ -136,23 +136,6 @@ prepare_model_data <- function(data, target_var, predictors) {
   )
 }
 
-plot_predictions <- function(predictions, city, target_var) {
-  ggplot(predictions, aes(x = actual, y = predicted)) +
-    geom_point(alpha = 0.3) +
-    geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
-    theme_minimal() +
-    labs(
-      title = paste("Actual vs Predicted", target_var, "-", city),
-      x = paste("Actual", target_var),
-      y = paste("Predicted", target_var)
-    ) +
-    coord_cartesian(
-      xlim = c(0, max(predictions$actual)),
-      ylim = c(0, max(predictions$predicted))
-    )
-}
-
-# Train and evaluate models for each city
 train_city <- function(city, train_data, test_data, predictors, target_var, model_params) {
   train_city_data <- train_data %>% 
     filter(City == city) %>% 
@@ -204,6 +187,96 @@ train_city <- function(city, train_data, test_data, predictors, target_var, mode
   )
 }
 
+prepare_model_data <- function(data, target_var, predictors) {
+  target_sym <- sym(target_var)
+  
+  transformed_data <- data %>%
+    filter(!is.na(!!target_sym)) %>%
+    select(all_of(c(target_var, "City", "Datetime", predictors))) %>%
+    group_by(City) %>%
+    mutate(across(all_of(predictors), ~ifelse(is.na(.), median(., na.rm = TRUE), .))) %>%
+    ungroup() %>%
+    mutate(year = as.numeric(format(Datetime, "%Y"))) %>%
+    select(-Datetime) %>%
+    na.omit()
+  
+  list(
+    train = transformed_data %>% 
+      filter(year < 2019) %>%
+      select(-year),
+    test = transformed_data %>% 
+      filter(year == 2019) %>%
+      select(-year)
+  )
+}
+
+train_city <- function(city, train_data, test_data, predictors, target_var, model_params) {
+  target_sym <- sym(target_var)
+  
+  train_city_data <- train_data %>% 
+    filter(City == city) %>% 
+    select(-City)
+  
+  test_city_data <- test_data %>% 
+    filter(City == city) %>% 
+    select(-City)
+  
+  if (nrow(train_city_data) == 0) {
+    stop(paste("No training data available for city:", city))
+  }
+  
+  if (any(sapply(train_city_data, function(x) all(is.na(x))))) {
+    stop("One or more columns contain all NA values")
+  }
+  
+  model <- train(
+    as.formula(paste(target_var, "~ .")),
+    data = train_city_data,
+    method = "rf",
+    trControl = trainControl(
+      method = "cv",
+      number = model_params$cv_folds
+    ),
+    tuneGrid = expand.grid(mtry = model_params$mtry_values),
+    ntree = model_params$ntrees
+  )
+  
+  pred <- predict(model, newdata = test_city_data)
+  actual <- test_city_data[[target_var]]
+  
+  evaluation <- list(
+    metrics = data.frame(
+      City = city,
+      RMSE = RMSE(pred, actual),
+      R2 = R2(pred, actual)
+    ),
+    predictions = data.frame(
+      actual = actual,
+      predicted = pred
+    )
+  )
+  
+  list(
+    model = model,
+    evaluation = evaluation
+  )
+}
+
+plot_predictions <- function(predictions, city, target_var) {
+  ggplot(predictions, aes(x = actual, y = predicted)) +
+    geom_point(alpha = 0.3) +
+    geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
+    theme_minimal() +
+    labs(
+      title = paste("Actual vs Predicted", target_var, "-", city),
+      x = paste("Actual", target_var),
+      y = paste("Predicted", target_var)
+    ) +
+    coord_cartesian(
+      xlim = c(0, max(predictions$actual)),
+      ylim = c(0, max(predictions$predicted))
+    )
+}
 
 # Main Execution
 
@@ -246,7 +319,6 @@ target_var = "PM10"
 # Prepare modeling data
 #model_data <- prepare_model_data(data, target_var, predictors) %>%
 #  mutate(year = as.numeric(format(data$Datetime[match(row_number(), row_number())], "%Y")))
-
 # prepare_modeling_data <- function(data, target_var, predictors) {
 #   model_data <- prepare_model_data(data, target_var, predictors)
 #   
@@ -298,7 +370,6 @@ print_target_statistics(data, targets, predictors)
 # )
 # train_data <- model_data[train_idx, ]
 # test_data <- model_data[-train_idx, ]
-
 
 
 bangalore_results = train_city("Bengaluru", train_data, test_data, predictors, target_var, config$model_params)
