@@ -155,12 +155,12 @@ These studies demonstrate the effectiveness of various machine learning and stat
 This project used two primary sources of data to analyze air pollution levels across five major Indian cities:
 
 \begin{itemize}
-    \item \textbf{Air Quality Data in India}: Available at \href{https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india}{\uline{Kaggle}}. This dataset provides hourly measurements of various air pollutants and particulate matter. The data is collected from multiple weather stations located within each of the five major cities.
+    \item \textbf{Air Quality Data in India}: Available at \href{https://www.kaggle.com/datasets/rohanrao/air-quality-data-in-india}{\uline{Kaggle}}. This dataset provides hourly measurements of various air pollutants and particulate matter. The data is collected from multiple weather stations located in 27 major Indian cities. The date range spans from January 2015 to July 2020, with over 700,000 records.
 
-    \item \textbf{Historical Weather Data for Indian Cities}: Available at \href{https://www.kaggle.com/datasets/hiteshsoneji/historical-weather-data-for-indian-cities}{\uline{Kaggle}}. This dataset includes hourly weather-related features for the same set of cities, encompassing over 20 variables such as precipitation (mm), wind speed, temperature, humidity, and other meteorological parameters. \citep{hitesh_soneji_2020}
+    \item \textbf{Historical Weather Data for Indian Cities}: Available at \href{https://www.kaggle.com/datasets/hiteshsoneji/historical-weather-data-for-indian-cities}{\uline{Kaggle}}. This dataset includes hourly weather-related features across 8 Indian cities, encompassing over 20 variables such as precipitation (mm), wind speed, temperature, humidity, and other meteorological parameters. The date range of the dataset spans from 2006 to 2019, with over 700,000 records. \citep{hitesh_soneji_2020}
 \end{itemize}
 
-To extract meaningful insights, it was necessary to merge these datasets, linking the meteorological variables from the second dataset with the air quality measurements from the first. This integration allowed us to analyze how environmental factors such as temperature, wind speed, and precipitation interact with pollutant concentrations over time. The merging process focused on aligning data by city names and hourly timestamps, ensuring that weather features corresponded accurately to pollution levels. This alignment was essential for preserving the temporal and spatial consistency of our analysis. While the original datasets contained information for additional cities, we focused our analysis on the five metropolitan areas where we had complete coverage across both datasets.
+To extract meaningful insights, it was necessary to merge these datasets, linking the meteorological variables from the second dataset with the air quality measurements from the first. This integration allowed us to analyze how environmental factors such as temperature, wind speed, and precipitation interact with pollutant concentrations over time. The merging process focused on aligning data by city names and hourly timestamps, ensuring that weather features corresponded accurately to pollution levels. This alignment was essential for preserving the temporal and spatial consistency of our analysis. While the original datasets contained information for additional cities and years, we focused our analysis on the five metropolitan areas and the five-year period (January 2015 to January 2019), where the two datasets overlapped.
 
 Looking ahead to our modeling approach, we envisioned using the rich meteorological data, combined with temporal features (such as hour of day and month of year) and the city names as predictors for air quality data. This framework allows us to explore how various environmental factors contribute to air pollution patterns and potentially forecast air quality under different weather scenarios.
 
@@ -177,32 +177,32 @@ To maintain data integrity and avoid potential biases, we chose to handle missin
 
 \subsubsection{Distribution Analysis and Transformation}
 
-Initial exploratory analysis revealed that the distributions of these pollutants exhibited strongly right-skewed patterns across all five cities. Figure \ref{fig:skewness} illustrates this pattern for three representative pollutants, but the same asymmetric distribution was observed across all pollutants, characterized by a high frequency of lower values and a long tail extending toward higher concentrations.
+Initial exploratory analysis revealed that the distributions of these pollutants exhibited strongly right-skewed patterns across all five cities. Figure~\ref{fig:skewness} illustrates this pattern for three representative pollutants, but the same asymmetric distribution was observed across all pollutants, characterized by a high frequency of lower values and a long tail extending toward higher concentrations.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.7\textwidth]{skewness.png}
+  \includegraphics[width=\textwidth]{assets/skewness.png}
   \caption{Pollutants levels by city}
   \label{fig:skewness}
 \end{figure}
 
-To address this skewness and make the data more suitable for statistical analysis, we applied a logarithmic transformation to all pollutant measurements. Since logarithmic transformation requires strictly positive values, we added a constant of 1 to each measurement before applying the transformation. The effectiveness of this transformation is demonstrated in Figure \ref{fig:log_scaled_pollutants}, where the transformed distributions more closely approximate normal distributions, providing a more suitable basis for our subsequent analyses.
+To address this skewness and make the data more suitable for statistical analysis, we applied a logarithmic transformation to all pollutant measurements. Since logarithmic transformation requires strictly positive values, we added a constant of 1 to each measurement before applying the transformation. The effectiveness of this transformation is demonstrated in Figure~\ref{fig:log_scaled_pollutants}, where the transformed distributions more closely approximate normal distributions, providing a more suitable basis for our subsequent analyses.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.7\textwidth]{log-scaled-pollutants.png}
-  \caption{Pollutants levels by city in a logarithmic scale}
+  \includegraphics[width=\textwidth]{assets/log-scaled-pollutants.png}
+  \caption{Pollutants levels by city on a logarithmic scale}
   \label{fig:log_scaled_pollutants}
 \end{figure}
 
-\subsubsection{Temporal Patterns Analysis}
+\subsubsection{Temporal Pattern Analysis}
 
-Further investigation of temporal patterns revealed distinct seasonal trends in pollutant concentrations, particularly for PM\textsubscript{2.5} and PM\textsubscript{10}, as shown in Figure \ref{fig:seasonal_trends}. A notable pattern emerged during the monsoon months (July to September), where consistently lower concentrations were observed across all cities. Among the cities studied, Delhi consistently exhibited higher pollutant concentrations throughout the year. These temporal patterns suggested the importance of incorporating seasonal factors into our modeling approach, leading to the creation of a "month" feature as a potential predictor variable.
+Further investigation of temporal patterns revealed distinct seasonal trends in pollutant concentrations, particularly for PM\textsubscript{2.5} and PM\textsubscript{10}, as shown in Figure~\ref{fig:seasonal_trends}. Notable patterns can be observed for PM\textsubscript{2.5} and PM\textsubscript{10}, where consistently lower concentrations were observed across all cities. Among the cities studied, Delhi consistently exhibited higher pollutant concentrations throughout the year. These temporal patterns suggest the importance of incorporating seasonal factors into our modeling approach. While there are clear seasonal trends in the data, they do not always follow a simple sinusoidal pattern, which may require more sophisticated modeling techniques to capture accurately.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.7\textwidth]{seasonal-trends.png}
-  \caption{PM\textsubscript{10} levels by city}
+  \includegraphics[width=\textwidth]{assets/seasonal-trends.png}
+  \caption{Monthly PM\textsubscript{2.5} and PM\textsubscript{10} distributions by city}
   \label{fig:seasonal_trends}
 \end{figure}
 
@@ -224,7 +224,7 @@ Following this, we analyzed the correlation between the selected features (those
 
 The analysis revealed the following:
 \begin{itemize}
-    \item \textit{Humidity}, \textit{windspeed}, \textit{cloudcover}, and \textit{DewPointC} were correlated with all but the CO pollutant, with the strongest correlations observed with particulate matter (\textit{Pm10} and \textit{Pm2.5}).
+    \item \textit{Humidity}, \textit{windspeed}, \textit{cloudcover}, and \textit{DewPointC} were correlated with all but the CO pollutant, with the strongest correlations observed with particulate matter (\textit{PM10} and \textit{PM2.5}).
     \item \textit{O3} was slightly negatively correlated with \textit{uvIndex} and \textit{tempC}, while being slightly positively correlated with \textit{humidity}, \textit{windspeed}, \textit{cloudcover}, and \textit{DewPointC}.
     \item \textit{CO} showed no significant correlation with any of the selected weather features.
     \item \textit{MoonIllumination} was not correlated with any variable, as expected.
@@ -234,14 +234,14 @@ However, since this analysis relied solely on linear correlation measures, it is
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.7\textwidth]{correlation-matrix.png}
+  \includegraphics[width=\textwidth]{assets/correlation-matrix.png}
   \caption{Correlation matrix of weather variables.}
   \label{fig:correlation_matrix}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\textwidth]{feature-response-correlation.png}
+    \includegraphics[width=\textwidth]{assets/feature-response-correlation.png}
     \caption{Correlation between weather features and response variables.}
     \label{fig:feature_response_correlation}
 \end{figure}
