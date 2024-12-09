@@ -1,5 +1,5 @@
 ---
-title: "Exploratory Data Analysis on Air Quality Data"
+title: "EDA + Modelling of Air Quality Data"
 output: html_notebook
 ---
 
@@ -7,10 +7,11 @@ output: html_notebook
 knitr::opts_chunk$set(echo = TRUE)
 
 # TODO how to do this properly, env vars?
-setwd("~/studies/data_mining/data-mining-project/notebooks")
+setwd("~/studies/data-mining-project/notebooks")
+INPUT_DIR <- "~/studies/data-mining-project/input"
 ```
 
-# Exploratory Data Analysis on Air Quality Data
+# Exploratory Data Analysis
 
 ## Introduction
 
@@ -29,51 +30,9 @@ library(corrplot)
 library(caret)
 library(lubridate, warn.conflicts = FALSE)
 library(gridExtra, warn.conflicts = FALSE)
-```
-
-## Downloading Data
-
-First, let's download the input files from Google Drive to the local file system.
-
-```{r}
-DOWNLOAD_FILES <- FALSE
-INPUT_DIR <- "../input"
-INPUT_DIR_DRIVE_ID <- "1V7RvgCu65LSaa2JjeengEMKwIYAhpSt8"
-
-if (DOWNLOAD_FILES) {
-    if (!dir.exists(INPUT_DIR)) {
-        cat("Creating input directory\n")
-        dir.create(INPUT_DIR, showWarnings = FALSE)
-    }
-
-    # authenticate with Google Drive
-    drive_auth()
-
-    input_dirs <- drive_ls(as_id(INPUT_DIR_DRIVE_ID))
-
-    # loop dirs and download files inside them
-    for (i1 in seq_along(input_dirs$name)) {
-        input_files <- drive_ls(as_id(input_dirs$id[i1]))
-
-        input_subdir <- file.path(INPUT_DIR, input_dirs$name[i1])
-        if (!dir.exists(input_subdir)) {
-            cat("Creating input directory\n")
-            dir.create(input_subdir, showWarnings = FALSE)
-        }
-
-        for (i2 in seq_along(input_files$name)) {
-            source_path <- file.path(input_dirs$name[i1], input_files$name[i2])
-            destination_path <- file.path(INPUT_DIR, input_dirs$name[i1], input_files$name[i2])
-            cat(paste("Downloading", source_path, "to", destination_path, "\n"))
-
-            drive_download(
-                as_id(input_files$id[i2]),
-                path = destination_path,
-                overwrite = TRUE
-            )
-        }
-    }
-}
+library(patchwork)
+library(reshape2)
+library(zoo)
 ```
 
 ## Loading Data
@@ -113,28 +72,52 @@ Observations:
 ### Distribution of Response Variables
 
 ```{r, fig.width=12, fig.height=16}
-# plot the distribution of the response variables
 response_vars <- c("PM2.5", "PM10", "NOx", "NH3", "CO", "SO2", "O3")
 
-plot_list <- list()
+# plot the distribution of the response variables
+plot_response_variables <- function(response_vars, scale = FALSE) {
+    plot_list <- list()
+    for (var in response_vars) {
+        non_na_data <- data_air_quality %>% filter(!is.na(.data[[var]]))
+        n_na <- sum(is.na(data_air_quality[[var]]))
 
-for (var in response_vars) {
-    non_na_data <- data_air_quality %>% filter(!is.na(.data[[var]]))
-    n_na <- sum(is.na(data_air_quality[[var]]))
+        # color different cities differently
+        # and scale the x-axis using a pseudo-log transformation
+        p <- ggplot(non_na_data, aes_string(x = var, fill = "City")) +
+            geom_histogram(bins = 100)
+        if (scale) {
+            p <- p + scale_x_continuous(trans=scales::pseudo_log_trans(base = 10))
+        } else {
+            p <- p + xlim(0, quantile(non_na_data[[var]], 0.99, na.rm = TRUE))
+        }
+        p <- p + labs(title = var, x = "Value", y = "Count") +
+            theme(axis.text = element_text(size = 12)) +
+            theme(legend.position = "none") +
+            # annotate in the upper right corner
+            annotate("text", x = Inf, y = Inf, hjust = 1, vjust = 1, label = paste("NA:", n_na))
 
-    # color different cities differently
-    # and scale the x-axis using a pseudo-log transformation
-    p <- ggplot(non_na_data, aes_string(x = var, fill = "City")) +
-        geom_histogram(bins = 100) +
-        scale_x_continuous(trans=scales::pseudo_log_trans(base = 10)) +
-        labs(title = var) +
-        # annotate in the upper right corner
-        annotate("text", x = Inf, y = Inf, hjust = 1, vjust = 1, label = paste("NA:", n_na))
+        plot_list <- c(plot_list, list(p))
+    }
+    names(plot_list) <- response_vars
 
-    plot_list <- c(plot_list, list(p))
+    return(plot_list)
 }
 
-grid.arrange(grobs = plot_list, ncol = 2)
+# plot the distribution of the response variables
+plot_list <- plot_response_variables(response_vars, scale = FALSE)
+grid.arrange(grobs = plot_list, ncol = 3)
+combined_plot <- wrap_plots(plotlist = plot_list[c("PM2.5", "PM10", "SO2")], ncol = 3) +
+    plot_layout(guides = "collect") &
+    theme(legend.position = "bottom", legend.text = element_text(size = 12))
+ggsave("../report/assets/skewness.png", combined_plot, width = 12, height = 5)
+
+# log-scaled plot
+plot_list <- plot_response_variables(response_vars, scale = TRUE)
+grid.arrange(grobs = plot_list, ncol = 3)
+combined_plot <- wrap_plots(plotlist = plot_list[c("PM2.5", "PM10", "SO2")], ncol = 3) +
+    plot_layout(guides = "collect") &
+    theme(legend.position = "bottom", legend.text = element_text(size = 12))
+ggsave("../report/assets/log-scaled-pollutants.png", combined_plot, width = 12, height = 5)
 ```
 
 Observations:
@@ -146,22 +129,39 @@ Observations:
 Let's plot the monthly boxplots of the response variables for each city.
 
 ```{r, fig.width=12, fig.height=20}
-plot_list <- list()
+plot_monthly_boxplots <- function(response_vars) {
+    plot_list <- list()
 
-# plot boxplots for the response variables by City and Month
-for (var in response_vars) {
-    p <- ggplot(
-            data_air_quality,
-            aes_string(x = "factor(month(Datetime))", y = var, fill = "City")
-        ) +
-        geom_boxplot(outlier.shape = NA) +
-        scale_y_continuous(limits = quantile(data_air_quality[[var]], c(0.05, 0.95), na.rm=TRUE)) +
-        labs(title = var)
+    # plot boxplots for the response variables by City and Month
+    for (var in response_vars) {
+        for (city in city_name_map$air_quality) {
+            p <- ggplot(
+                data_air_quality %>% filter(City == city),
+                aes_string(x = "factor(month(Datetime))", y = var)
+            ) +
+                geom_boxplot(outlier.shape = NA) +
+                scale_y_continuous(
+                    trans=scales::pseudo_log_trans(base = 10),
+                    limits = quantile(data_air_quality[[var]], c(0.05, 0.95), na.rm=TRUE)
+                ) +
+                theme(axis.text = element_text(size = 12)) +
+                labs(x = "Month", y = "Value", title = paste(var, city))
 
-    plot_list <- c(plot_list, list(p))
+            plot_list <- c(plot_list, list(p))
+        }
+    }
+    names(plot_list) <- paste(rep(response_vars, each = 5), rep(city_name_map$air_quality, length(response_vars)))
+
+    return(plot_list)
 }
 
-grid.arrange(grobs = plot_list, ncol = 1)
+plot_list <- plot_monthly_boxplots(response_vars)
+grid.arrange(grobs = plot_list, ncol = 5)
+
+combined_plot <- wrap_plots(plotlist = plot_list[seq(1, 10)], ncol = 5) +
+    plot_layout(guides = "collect") &
+    theme(legend.position = "bottom", legend.text = element_text(size = 12))
+ggsave("../report/assets/seasonal-trends.png", combined_plot, width = 12, height = 5)
 ```
 
 Observations:
@@ -185,6 +185,10 @@ for (city in city_name_map$weather) {
 }
 
 data_weather <- bind_rows(data_weather)
+# remove uvIndex...6 as it contains strange values
+data_weather <- data_weather %>%
+    select(-uvIndex...6) %>%
+    rename(uvIndex = uvIndex...7)
 
 # filter the data
 data_weather <- data_weather %>%
@@ -203,7 +207,7 @@ Observations:
 ```{r, fig.width=12, fig.height=30}
 # plot the distribution of the weather variables
 weather_vars <- c(
-    "maxtempC", "mintempC", "totalSnow_cm", "sunHour", "uvIndex...6", "uvIndex...7", "moon_illumination",
+    "maxtempC", "mintempC", "totalSnow_cm", "sunHour", "uvIndex", "moon_illumination",
     "DewPointC", "FeelsLikeC", "HeatIndexC", "WindChillC", "WindGustKmph", "cloudcover", "humidity",
     "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph"
 )
@@ -253,6 +257,8 @@ data_merged <- inner_join(
 data_merged$hour_of_day <- as.numeric(format(data_merged$Datetime, "%H"))
 data_merged$hour_cos <- cos(2 * pi * data_merged$hour_of_day / 24)
 data_merged$hour_sin <- sin(2 * pi * data_merged$hour_of_day / 24)
+data_merged$hour_cos_12h <- cos(2 * pi * data_merged$hour_of_day / 12)
+data_merged$hour_sin_12h <- sin(2 * pi * data_merged$hour_of_day / 12)
 data_merged$hour_of_day <- factor(data_merged$hour_of_day)
 
 # create a new variable for the day of the week
@@ -266,6 +272,24 @@ data_merged$month_of_year <- factor(data_merged$month_of_year)
 # convert wind direction to a sin-cos pair
 data_merged$winddir_cos <- cos(2 * pi * data_merged$winddirDegree / 360)
 data_merged$winddir_sin <- sin(2 * pi * data_merged$winddirDegree / 360)
+
+# calculate wind components using wind speed and direction
+data_merged$windspeed_x <- data_merged$windspeedKmph * data_merged$winddir_cos
+data_merged$windspeed_y <- data_merged$windspeedKmph * data_merged$winddir_sin
+
+# Create cumulative sum for precipMM
+data_merged$precipMM_24h <- ave(
+  data_merged$precipMM,
+  data_merged$City,
+  FUN = function(x) rollapply(x, width = 24, FUN = sum, align = "right", fill = NA, na.rm = TRUE)
+)
+
+# Create cumulative sum for windspeedKmph
+data_merged$windspeedKmph_24h <- ave(
+  data_merged$windspeedKmph,
+  data_merged$City,
+  FUN = function(x) rollapply(x, width = 24, FUN = sum, align = "right", fill = NA, na.rm = TRUE)
+)
 
 # convert the City variable to a factor
 data_merged$City <- factor(data_merged$City)
@@ -292,25 +316,49 @@ data_merged[numeric_vars] <- scale(data_merged[numeric_vars])
 ### Feature-Feature Correlation
 
 ```{r}
+weather_vars <- c(
+    "maxtempC", "mintempC", "totalSnow_cm", "sunHour", "uvIndex", "moon_illumination",
+    "DewPointC", "FeelsLikeC", "HeatIndexC",
+    "WindChillC", "WindGustKmph", "cloudcover", "humidity", "precipMM", "pressure",
+    "tempC", "visibility", "winddirDegree", "windspeedKmph"
+    # "winddir_cos", "winddir_sin", "windspeed_x", "windspeed_y",
+    # "precipMM_24h",
+    # "windspeedKmph_24h"
+)
+
 # calculate the correlation matrix
 correlation_matrix <- cor(
     data_merged[, weather_vars],
     use = "pairwise.complete.obs"
 )
 
-# remove rows and columns with all NA values
-correlation_matrix <- correlation_matrix[
-    !apply(is.na(correlation_matrix), 1, all),
-    !apply(is.na(correlation_matrix), 2, all)
-]
+# reorder the correlation matrix
+reordered_indices <- hclust(as.dist(1 - abs(na.fill(correlation_matrix, 0))))$order
+correlation_matrix_reordered <- correlation_matrix[reordered_indices, reordered_indices]
+
+correlation_long <- melt(correlation_matrix_reordered)
 
 # plot the correlation matrix
-corrplot(
-    correlation_matrix,
-    method = "color",
-    tl.col = "black",
-    order = "hclust"
-)
+p <- ggplot(correlation_long, aes(x = Var1, y = Var2, fill = na.fill(value, 0))) +
+    geom_tile(color = "white") +
+    scale_fill_gradient2(
+        low = "blue", mid = "white", high = "red", 
+        midpoint = 0, limit = c(-1, 1), space = "Lab",
+        name = "Correlation"
+    ) +
+    geom_text(aes(label = na.fill(as.character(round(value, 2)), "NA")), size = 3.5) +
+    theme_minimal() +
+    theme(
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.text = element_text(size = 12)
+    ) +
+    labs(
+        x = "Variables",
+        y = "Variables",
+    )
+p
+
+ggsave("../report/assets/feature-correlation-matrix.png", p, width = 10, height = 8)
 ```
 
 Observations:
@@ -325,24 +373,45 @@ Observations:
 
 ```{r}
 feature_vars <- c(
-    "sunHour", "uvIndex...7", "moon_illumination",
-    "DewPointC", "WindGustKmph", "cloudcover", "humidity",
-    "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph"
+    "sunHour", "uvIndex", "moon_illumination",
+    "DewPointC", "cloudcover", "humidity",
+    "precipMM", "pressure", "tempC", "winddirDegree", "windspeedKmph",
+    "maxtempC", "mintempC"  # TODO: remove highly correlated features
+    # "winddir_cos", "winddir_sin", "windspeed_x", "windspeed_y"
+    # "precipMM_24h", "windspeedKmph_24h",
 )
 
 # calculate the correlation matrix
 correlation_matrix <- cor(
-    data_merged[, response_vars],
     data_merged[, feature_vars],
+    data_merged[, response_vars],
     use = "pairwise.complete.obs"
 )
 
+# reorder the correlation matrix
+correlation_long <- melt(correlation_matrix, na.rm = TRUE)
+
 # plot the correlation matrix
-corrplot(
-    correlation_matrix,
-    method = "color",
-    tl.col = "black"
-)
+p <- ggplot(correlation_long, aes(x = Var1, y = Var2, fill = value)) +
+    geom_tile(color = "white") +
+    scale_fill_gradient2(
+        low = "blue", mid = "white", high = "red", 
+        midpoint = 0, limit = c(-1, 1), space = "Lab",
+        name = "Correlation"
+    ) +
+    geom_text(aes(label = round(value, 2)), size = 4) +
+    theme_minimal() +
+    theme(
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.text = element_text(size = 12)
+    ) +
+    labs(
+        x = "Variables",
+        y = "Variables",
+    )
+p
+
+ggsave("../report/assets/feature-response-correlation.png", p, width = 10, height = 6)
 ```
 
 Observations:
@@ -358,12 +427,24 @@ Since the data is from multiple cities, we will build separate models for each c
 
 ```{r, fig.width=12, fig.height=16}
 feature_vars <- c(
-    "sunHour", "uvIndex...7", "moon_illumination", "DewPointC", "WindGustKmph", "cloudcover",
-    "humidity", "precipMM", "pressure", "tempC", "visibility", "windspeedKmph", "day_of_week",
-    "month_of_year", "hour_cos", "hour_sin", "winddir_cos", "winddir_sin"
+    "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph",
+    "maxtempC", "mintempC"  # TODO: remove highly correlated features
+    # "winddir_cos", "winddir_sin", "windspeed_x", "windspeed_y"
+    # "precipMM_24h", "windspeedKmph_24h",
+
+
+
+    "sunHour", "uvIndex", "moon_illumination", "DewPointC", "WindGustKmph", "cloudcover",
+    "humidity", "precipMM", "pressure", "tempC", "windspeedKmph", "day_of_week",
+    "month_of_year", "hour_cos", "hour_sin",
+    "hour_cos_12h", "hour_sin_12h",
+    "winddir_cos", "winddir_sin",
+    "precipMM_24h",
+    "windspeed_x", "windspeed_y"
 )
 
 feature_importance <- list()
+stats_values <- list()
 
 for (city in city_name_map$air_quality) {
     cat(paste("\nFitting models for", city, "\n"))
@@ -372,10 +453,28 @@ for (city in city_name_map$air_quality) {
         filter(City == city)
 
     for (var in response_vars) {
-        # cat(paste("Fitting model for", var))
+        data_train <- data_city %>%
+            filter(Datetime < as.POSIXct("2019-01-01")) %>%
+            select(c(var, feature_vars)) %>%
+            na.omit()
+        data_test <- data_city %>%
+            filter(Datetime >= as.POSIXct("2019-01-01")) %>%
+            select(c(var, feature_vars)) %>%
+            na.omit()
 
-        model <- lm(data_city[[var]] ~ ., data = data_city[, feature_vars])
-        # model <- lm(log(data_city[[var]] + 1) ~ ., data = data_city[, feature_vars])
+        if (nrow(data_train) == 0) {
+            cat(paste("Skipping", var, "for", city, "due to all NA values\n"))
+            next
+        }
+        if (length(unique(data_train$month_of_year)) != 12) {
+            cat(paste("Skipping", var, "for", city, "due to missing months\n"))
+            next
+        }
+
+        model <- lm(
+            data_train[[var]] ~ .,
+            data = data_train[, feature_vars]
+        )
 
         # add the model to the list of feature importance
         feature_importance_row <- data.frame(
@@ -387,10 +486,33 @@ for (city in city_name_map$air_quality) {
         rownames(feature_importance_row) <- NULL
         feature_importance <- c(feature_importance, list(feature_importance_row))
 
+        test_predictions <- predict(model, data_test[, feature_vars])
+
+        stats_values <- c(
+            stats_values,
+            list(
+                data.frame(
+                    city = city,
+                    var = var,
+                    r = cor(data_test[[var]], test_predictions),
+                    r2 = cor(data_test[[var]], test_predictions)^2,
+                    rmse = sqrt(mean((data_test[[var]] - test_predictions)^2))
+                )
+            )
+        )
+
         # evaluate the model
         cat(paste(city, var, ":", round(summary(model)$r.squared, 3), "\n"))
     }
 }
+
+stats_values <- bind_rows(stats_values)
+cat("Mean stats by response variable:\n")
+stats_values %>%
+    group_by(var) %>%
+    summarise(r = mean(r), r2 = mean(r2), rmse = mean(rmse))
+
+print(mean(stats_values$r2))
 
 feature_importance <- bind_rows(feature_importance)
 
