@@ -263,7 +263,7 @@ However, since this analysis relied solely on linear correlation measures, it is
 
 \subsection{Feature Engineering}
 
-Our feature engineering process focused on creating meaningful derived variables that could capture complex temporal patterns and weather-related phenomena not directly represented in the raw data. These engineered features proved to be highly effective in improving our model's predictive performance.
+Our feature engineering process focused on creating meaningful derived variables that could capture complex temporal patterns and weather-related phenomena not directly represented in the raw data. These engineered features proved to be effective in improving our model's predictive performance.
 
 \subsubsection{Temporal Features}
 
@@ -271,7 +271,14 @@ To capture the cyclical nature of air pollution patterns, we developed several t
 
 \subsubsection{Weather-Related Features}
 
-For weather data, we implemented several transformations. Wind direction, originally measured in degrees (0-359), was converted into two continuous features using sine and cosine transformations: $\textit{winddir\_cos} = \cos(2\pi \times \text{degree}/360)$ and $\textit{winddir\_sin} = \sin(2\pi \times \text{degree}/360)$. This cyclic encoding ensured that directions like 359° and 0° were appropriately represented as being nearly identical, which would not be the case with raw degree values.
+For weather data, we implemented several transformations. Wind speed and direction, originally measured in \textit{Kmph} and degrees (0-359), respectively, were transformed into two new wind speed predictors, namely the wind speed along the X and Y axes. This transformation was achieved using the following trigonometric functions:
+
+\begin{align*}
+    \textit{windspeed\_x} &= \textit{windspeedKmph} \times \cos(2\pi \times \text{winddir}/360) \\
+    \textit{windspeed\_y} &= \textit{windspeedKmph} \times \sin(2\pi \times \text{winddir}/360)
+\end{align*}
+
+This encoding ensured that directions like 359° and 0° were appropriately represented as being nearly identical.
 
 A key feature that emerged from our literature review was the significant impact of precipitation on pollution levels during rainy seasons. To capture this effect, we developed a cumulative precipitation feature (\textit{precipMM\_24h}) that calculates the total rainfall over the previous 24 hours for each city. This feature proved to be effective in our final model, helping to capture how sustained rainfall patterns affect pollutant concentrations. Similarly, we created a 24-hour cumulative wind speed feature (\textit{windspeedKmph\_24h}) to account for the sustained impact of wind on pollutant dispersion.
 
@@ -279,6 +286,16 @@ Additionally, we normalized sunrise times (\textit{sunrise\_normalized}) to acco
 
 These engineered features, particularly the temporal cyclic encodings and the 24-hour cumulative precipitation metric, significantly enhanced our model's ability to capture complex patterns in air pollution levels. The effectiveness of these features suggests that both the cyclic nature of pollution patterns and the sustained impact of weather conditions play crucial roles in determining air quality levels.
 
+Once feature engineering was complete, we scaled all continuous features to ensure that they were on a similar scale, preventing any single feature from dominating the model. This step was essential for maintaining the stability and convergence of our regression models.
+
+Finally, we performed the feature correlation analysis once again to make sure that we have not introduced any new collinearity issues. The results of this analysis are visualized in Figure~\ref{fig:final_feature_correlation}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{assets/feature-correlation-matrix-final.png}
+  \caption{Correlation between final features.}
+  \label{fig:final_feature_correlation}
+\end{figure}
 
 \newpage
 
