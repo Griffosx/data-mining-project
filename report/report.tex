@@ -162,7 +162,9 @@ This project used two primary sources of data to analyze air pollution levels ac
 
 To extract meaningful insights, it was necessary to merge these datasets, linking the meteorological variables from the second dataset with the air quality measurements from the first. This integration allowed us to analyze how environmental factors such as temperature, wind speed, and precipitation interact with pollutant concentrations over time. The merging process focused on aligning data by city names and hourly timestamps, ensuring that weather features corresponded accurately to pollution levels. This alignment was essential for preserving the temporal and spatial consistency of our analysis. While the original datasets contained information for additional cities and years, we focused our analysis on the five metropolitan areas and the five-year period (January 2015 to January 2019), where the two datasets overlapped.
 
-Looking ahead to our modeling approach, we envisioned using the rich meteorological data, combined with temporal features (such as hour of day and month of year) and the city names as predictors for air quality data. This framework allows us to explore how various environmental factors contribute to air pollution patterns and potentially forecast air quality under different weather scenarios.
+Looking ahead to our modeling approach, we envisioned using the rich meteorological data, combined with temporal features (such as hour of day and month of year) and the city names as predictors for air quality data.
+
+Note that we will not be forecasting time series data in this project, as we are limited in the choice of models and may not use advanced techniques like LSTM or other deep learning models. Instead, our primary goal is to predict air pollution levels using a multivariate regression approach. This will allow us to explore how various environmental and temporal variables contribute to air pollution patterns and potentially forecast air quality from meteorological data.
 
 In the following subsections, we first examine our response variables, analyzing the various pollutants and their distributions in our dataset. We then explore the weather features, detailing how we identified the most relevant predictors from our merged dataset. Finally, we present our feature engineering methodology, which helped us capture complex temporal and spatial patterns in our data, setting the stage for our subsequent modeling efforts.
 
@@ -197,7 +199,9 @@ To address this skewness and make the data more suitable for statistical analysi
 
 \subsubsection{Temporal Pattern Analysis}
 
-Further investigation of temporal patterns revealed distinct seasonal trends in pollutant concentrations, particularly for PM\textsubscript{2.5} and PM\textsubscript{10}, as shown in Figure~\ref{fig:seasonal_trends}. Notable patterns can be observed for PM\textsubscript{2.5} and PM\textsubscript{10}, where consistently lower concentrations were observed across all cities. Among the cities studied, Delhi consistently exhibited higher pollutant concentrations throughout the year. These temporal patterns suggest the importance of incorporating seasonal factors into our modeling approach. While there are clear seasonal trends in the data, they do not always follow a simple sinusoidal pattern, which may require more sophisticated modeling techniques to capture accurately.
+Further investigation of temporal patterns revealed distinct seasonal trends in pollutant concentrations, particularly for PM\textsubscript{2.5} and PM\textsubscript{10}, as shown in Figure~\ref{fig:seasonal_trends}. Notable patterns can be observed for PM\textsubscript{2.5} and PM\textsubscript{10}, where consistently lower concentrations were observed across all cities. Among the cities studied, Delhi consistently exhibited higher pollutant concentrations throughout the year. These temporal patterns suggest the importance of incorporating seasonal factors into our modeling approach. While there are clear seasonal trends in the data, they do not always follow a simple sinusoidal pattern, and the minimums are observed at different times of the year for different pollutants.
+
+All this complexity suggests that different cities should be modeled separately, and the seasonal trends may require more sophisticated modeling techniques to capture accurately.
 
 \begin{figure}[H]
   \centering
@@ -208,43 +212,54 @@ Further investigation of temporal patterns revealed distinct seasonal trends in 
 
 \subsection{Predictor Selection}
 
-Having completed our analysis of the pollutant response variables and their distributions, we turned our attention to examining the meteorological predictors in our dataset. Before applying formal feature selection methods, we conducted a thorough correlation analysis of the meteorological data to understand the relationships between weather variables. The correlation matrix visualization (Figure~\ref{fig:correlation_matrix}) revealed several significant relationships between weather parameters. Some of the key findings were as follows:
+Having completed our analysis of the pollutant response variables and their distributions, we turned our attention to examining the meteorological predictors in our dataset. Before applying feature selection, we conducted a correlation analysis of the meteorological data to understand the relationships between weather variables. The correlation matrix visualization (Figure~\ref{fig:correlation_matrix}) revealed several significant relationships between weather parameters. Some of the key findings were as follows:
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{assets/feature-correlation-matrix.png}
+  \caption{Correlation matrix of weather variables.}
+  \label{fig:correlation_matrix}
+\end{figure}
 
 \begin{itemize}
-    \item \textit{FeelsLikeC}, \textit{HeatIndexC}, \textit{WindChillC}, \textit{minTempC}, and \textit{maxTempC} were strongly correlated with \textit{tempC}, as expected, given that they are derived from temperature and related variables.
+    \item \textit{FeelsLikeC}, \textit{HeatIndexC}, \textit{WindChillC}, \textit{minTempC}, and \textit{maxTempC} were very strongly correlated with \textit{tempC}, as expected, given that they are derived from temperature, humidity, and wind speed.
     \item Features like \textit{sunHour} and \textit{uvIndex} were also correlated with temperature-related variables.
     \item \textit{Humidity} was positively correlated with \textit{DewPointC} and \textit{cloudcover}, while inversely correlated with temperature-related variables.
     \item \textit{Pressure} was inversely correlated with temperature-related variables and showed slight correlations with several other features, suggesting that pressure is influenced by other meteorological factors.
     \item \textit{Visibility} exhibited slight positive correlations with temperature-related variables and inverse correlations with \textit{humidity}, \textit{cloudcover}, \textit{precipitation}, and \textit{DewPointC}.
     \item \textit{Windspeed} and \textit{windgust} were strongly correlated with each other.
-    \item \textit{MoonIllumination} was not correlated with any other variable, as expected.
+    \item \textit{Moon\_illumination} was not correlated with any other variable, as expected.
+\end{itemize}
+
+Based on these findings, we identified several highly correlated group of features, such as \textit{tempC} and \textit{FeelsLikeC}, \textit{HeatIndexC}, and \textit{WindChillC}, which could potentially introduce collinearity issues in our models. To address this, we have removed the highly correlated features, retaining only one representative variable from each correlated pair. This feature selection process aimed to reduce redundancy and improve model interpretability by focusing on the most relevant predictors. The following predictors were removed from our dataset:
+
+\begin{itemize}
+    \item \textit{totalSnow\_cm} was removed due to zero variance.
+    \item \textit{FeelsLikeC}, \textit{HeatIndexC}, and \textit{WindChillC} were removed in favor of \textit{tempC}.
+    \item \textit{WindGustKmph} was removed in favor of \textit{windspeedKmph}.
+    \item \textit{Visibility} was removed due to it being a possible leakage feature.
+    % \item \textit{minTempC} and \textit{maxTempC} were removed in favor of \textit{tempC}.
+    % \item \textit{Pressure} was removed due to its high correlation with other variables.
 \end{itemize}
 
 Following this, we analyzed the correlation between the selected features (those obtained after removing the highly correlated ones identified in the previous analysis) and the response variables to assess their potential predictive power. The resulting correlation analysis is visualized in Figure~\ref{fig:feature_response_correlation}.
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{assets/feature-response-correlation.png}
+  \caption{Correlation between weather features and response variables.}
+  \label{fig:feature_response_correlation}
+\end{figure}
+
 The analysis revealed the following:
 \begin{itemize}
-    \item \textit{Humidity}, \textit{windspeed}, \textit{cloudcover}, and \textit{DewPointC} were correlated with all but the CO pollutant, with the strongest correlations observed with particulate matter (\textit{PM10} and \textit{PM2.5}).
-    \item \textit{O3} was slightly negatively correlated with \textit{uvIndex} and \textit{tempC}, while being slightly positively correlated with \textit{humidity}, \textit{windspeed}, \textit{cloudcover}, and \textit{DewPointC}.
-    \item \textit{CO} showed no significant correlation with any of the selected weather features.
+    \item \textit{Humidity}, \textit{windspeed}, \textit{cloudcover}, and \textit{DewPointC} were negatively correlated with all but the CO pollutant, with the strongest correlations observed with particulate matter (\textit{PM10} and \textit{PM2.5}).
+    \item \textit{O3} was also slightly positively correlated with \textit{uvIndex} and \textit{tempC}.
+    \item \textit{CO} showed no notable correlation with any of the selected weather features, except a negative correlation with \textit{DewPointC}.
     \item \textit{MoonIllumination} was not correlated with any variable, as expected.
 \end{itemize}
 
-However, since this analysis relied solely on linear correlation measures, it is possible that important non-linear relationships remain undetected. To capture such relationships, advanced techniques like non-linear modeling or feature transformations were performed in subsequent steps.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{assets/correlation-matrix.png}
-  \caption{Correlation matrix of weather variables.}
-  \label{fig:correlation_matrix}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{assets/feature-response-correlation.png}
-    \caption{Correlation between weather features and response variables.}
-    \label{fig:feature_response_correlation}
-\end{figure}
+However, since this analysis relied solely on linear correlation measures, it is possible that important non-linear relationships remain undetected. To capture such relationships, several feature transformations were performed in subsequent steps.
 
 
 \subsection{Feature Engineering}
