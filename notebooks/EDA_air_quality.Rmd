@@ -540,12 +540,14 @@ for (city in city_name_map$air_quality) {
 stats_values <- bind_rows(stats_values)
 cat("Mean stats by response variable:\n")
 stats_values %>%
-    group_by(var) %>%
-    summarise(r = mean(r), r2 = mean(r2), rmse = mean(rmse))
+    group_by(city) %>%
+    summarise(r = mean(r), r2 = mean(r2), rmse = mean(rmse)) %>%
+    xtable(., digits = 3)
 
 print(mean(stats_values$r2))
 
 feature_importance <- bind_rows(feature_importance)
+feature_importance_matrix <- dcast(feature_importance, feature ~ response_var + city, value.var = "estimate")
 
 # plot the feature importance
 ggplot(feature_importance, aes(x = estimate, y = feature, fill = city)) +

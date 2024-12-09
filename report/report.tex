@@ -238,8 +238,9 @@ Based on these findings, we identified several highly correlated group of featur
     \item \textit{FeelsLikeC}, \textit{HeatIndexC}, and \textit{WindChillC} were removed in favor of \textit{tempC}.
     \item \textit{WindGustKmph} was removed in favor of \textit{windspeedKmph}.
     \item \textit{Visibility} was removed due to it being a possible leakage feature.
-    % \item \textit{minTempC} and \textit{maxTempC} were removed in favor of \textit{tempC}.
 \end{itemize}
+
+We did not remove any other correlated features at this stage, as we have an abundance of data and these features may still provide valuable information for our models. We may revisit this decision during the model selection process.
 
 Following this, we analyzed the correlation between the selected features (those obtained after removing the highly correlated ones identified in the previous analysis) and the response variables to assess their potential predictive power. The resulting correlation analysis is visualized in Figure~\ref{fig:feature_response_correlation}.
 
@@ -301,11 +302,17 @@ The \textit{hour\_cos} looks highly negatively correlated with \textit{uvIndex},
 
 \section{Methodology}
 
-% TODO a comment about separate models
+The above exploratory data analysis showed that different cities exhibit unique temporal and environmental patterns that influence air pollution levels. To capture these dynamics effectively, we chose to fit independent linear regression models for each city and response variable.
 
 \subsection{Feature Selection}
 
-% The analysis incorporated a set of 22 features, including meteorological, temporal, and derived variables, chosen for their potential relevance to air quality dynamics. Features like wind vector components (windspeed_x, windspeed_y) and cyclic representations of time (hour_cos, hour_sin, hour_cos_12h, hour_sin_12h) were included to capture directional and periodic patterns, respectively.
+All in all, the analysis incorporated a set of 7 response variables and 22 features, chosen for their potential relevance to air pollution levels. The final set of predictors included:
+
+\begin{itemize}
+  \item \textbf{Meteorological Features}: \textit{tempC}, \textit{minTempC}, \textit{maxTempC}, \textit{DewPointC}, \textit{humidity}, \textit{cloudcover}, \textit{precipMM}, \textit{pressure}, \textit{windspeedKmph}, \textit{uvIndex}, \textit{moon\_illumination}, \textit{sunHour}
+  \item \textbf{Derived Meteorological Features}: \textit{windspeed\_x}, \textit{windspeed\_y}, \textit{precipMM\_24h}, \textit{windspeedKmph\_24h}
+  \item \textbf{Temporal Features}: \textit{day\_of\_week}, \textit{month\_of\_year}, \textit{hour\_cos}, \textit{hour\_sin}, \textit{hour\_cos\_12h}, \textit{hour\_sin\_12h}
+\end{itemize}
 
 \subsection{Data Splitting and Filtering}
 
@@ -318,7 +325,7 @@ For each city in the dataset, the data were split into training (2015-2018) and 
 
 \section{Model Fitting}
 
-Linear regression models were fitted independently for each response variable in each city. The general model specification was:
+Linear regression models were fitted independently for each of the seven response variables in each city. The general model specification was:
 
 \[
 Y_{C} = \beta_{0} + \sum_{i=1}^{n} \beta_{i} X_{i} + \epsilon
@@ -356,7 +363,7 @@ Otherwise, the retained datasets included robust representations across all mont
 
 \subsection{Model Fit and Performance Metrics}
 
-The test $R^2$ across all 30 models ranged from 0.012 to 0.670 (median: 0.289), indicating varying levels of explanatory power. The test $r$ values ranged from 0.108 to 0.819 (median: 0.538), suggesting varying (low to high) predictive accuracy across cities and response variables.
+The test $R^2$ across all 30 models ranged from 0.012 to 0.670 (median: 0.289), indicating varying levels of explanatory power. The test $r$ values ranged from 0.108 to 0.819 (median: 0.538), suggesting varying (low to moderate) predictive accuracy across cities and response variables.
 
 The aggregated performance metrics for each response variable are presented in Table~\ref{tab:performance_metrics_by_variable}.
 
@@ -400,7 +407,7 @@ The aggregated performance metrics for each city are presented in Table~\ref{tab
 \label{tab:performance_metrics_by_city}
 \end{table}
 
-The city-specific results indicate that the models performed best in Hyderabad and Delhi, with average \textit{R\textsuperscript{2}} values of 0.396 and 0.374, respectively. Mumbai had the lowest performance, with an average \textit{R\textsuperscript{2}} of 0.042, although only two out of seven response variables were modelled for this city.
+The city-specific results indicate that the models performed best in Hyderabad and Delhi, with average \textit{R\textsuperscript{2}} values of 0.396 and 0.374, respectively. Mumbai had the lowest performance, with an average \textit{R\textsuperscript{2}} of 0.042, although only two out of seven response variables were modelled for this city. All in all, the models demonstrated varying levels of predictive accuracy across cities, reflecting the diverse environmental dynamics and pollutant patterns in each region.
 
 The full raw results for each individual model are presented in Appendix A.
 
