@@ -257,8 +257,8 @@ data_merged <- inner_join(
 data_merged$hour_of_day <- as.numeric(format(data_merged$Datetime, "%H"))
 data_merged$hour_cos <- cos(2 * pi * data_merged$hour_of_day / 24)
 data_merged$hour_sin <- sin(2 * pi * data_merged$hour_of_day / 24)
-data_merged$hour_2_cos <- cos(2 * pi * data_merged$hour_of_day / 12)
-data_merged$hour_2_sin <- sin(2 * pi * data_merged$hour_of_day / 12)
+data_merged$hour_cos_12h <- cos(2 * pi * data_merged$hour_of_day / 12)
+data_merged$hour_sin_12h <- sin(2 * pi * data_merged$hour_of_day / 12)
 data_merged$hour_of_day <- factor(data_merged$hour_of_day)
 
 # create a new variable for the day of the week
@@ -375,7 +375,7 @@ Observations:
 feature_vars <- c(
     "sunHour", "uvIndex", "moon_illumination",
     "DewPointC", "cloudcover", "humidity",
-    "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph",
+    "precipMM", "pressure", "tempC", "winddirDegree", "windspeedKmph",
     "maxtempC", "mintempC"  # TODO: remove highly correlated features
     # "winddir_cos", "winddir_sin", "windspeed_x", "windspeed_y"
     # "precipMM_24h", "windspeedKmph_24h",
@@ -427,12 +427,19 @@ Since the data is from multiple cities, we will build separate models for each c
 
 ```{r, fig.width=12, fig.height=16}
 feature_vars <- c(
-    "sunHour", "uvIndex...7", "moon_illumination", "DewPointC", "WindGustKmph", "cloudcover",
+    "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph",
+    "maxtempC", "mintempC"  # TODO: remove highly correlated features
+    # "winddir_cos", "winddir_sin", "windspeed_x", "windspeed_y"
+    # "precipMM_24h", "windspeedKmph_24h",
+
+
+
+    "sunHour", "uvIndex", "moon_illumination", "DewPointC", "WindGustKmph", "cloudcover",
     "humidity", "precipMM", "pressure", "tempC", "windspeedKmph", "day_of_week",
     "month_of_year", "hour_cos", "hour_sin",
-    "hour_2_cos", "hour_2_sin",
+    "hour_cos_12h", "hour_sin_12h",
     "winddir_cos", "winddir_sin",
-    "precipMM_cumsum_24h",
+    "precipMM_24h",
     "windspeed_x", "windspeed_y"
 )
 
