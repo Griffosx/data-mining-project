@@ -269,13 +269,9 @@ data_merged$day_of_week <- factor(data_merged$day_of_week)
 data_merged$month_of_year <- as.numeric(format(data_merged$Datetime, "%m"))
 data_merged$month_of_year <- factor(data_merged$month_of_year)
 
-# convert wind direction to a sin-cos pair
-data_merged$winddir_cos <- cos(2 * pi * data_merged$winddirDegree / 360)
-data_merged$winddir_sin <- sin(2 * pi * data_merged$winddirDegree / 360)
-
 # calculate wind components using wind speed and direction
-data_merged$windspeed_x <- data_merged$windspeedKmph * data_merged$winddir_cos
-data_merged$windspeed_y <- data_merged$windspeedKmph * data_merged$winddir_sin
+data_merged$windspeed_x <- data_merged$windspeedKmph * cos(2 * pi * data_merged$winddirDegree / 360)
+data_merged$windspeed_y <- data_merged$windspeedKmph * sin(2 * pi * data_merged$winddirDegree / 360)
 
 # Create cumulative sum for precipMM
 data_merged$precipMM_24h <- ave(
@@ -321,9 +317,6 @@ weather_vars <- c(
     "DewPointC", "FeelsLikeC", "HeatIndexC",
     "WindChillC", "WindGustKmph", "cloudcover", "humidity", "precipMM", "pressure",
     "tempC", "visibility", "winddirDegree", "windspeedKmph"
-    # "winddir_cos", "winddir_sin", "windspeed_x", "windspeed_y",
-    # "precipMM_24h",
-    # "windspeedKmph_24h"
 )
 
 # calculate the correlation matrix
@@ -367,7 +360,6 @@ Observations:
 * We shall remove some of these variables to avoid multicollinearity.
 * For example, we can remove the following variables:
     * FeelsLikeC, HeatIndexC, WindChillC, minTempC, maxTempC (highly correlated with tempC, and derived from a combination of temperature, humidity, and wind speed)
-    * uvIndex...6 (highly correlated with uvIndex...7)
 
 ### Feature-Response Correlation
 
@@ -377,8 +369,6 @@ feature_vars <- c(
     "DewPointC", "cloudcover", "humidity",
     "precipMM", "pressure", "tempC", "winddirDegree", "windspeedKmph",
     "maxtempC", "mintempC"  # TODO: remove highly correlated features
-    # "winddir_cos", "winddir_sin", "windspeed_x", "windspeed_y"
-    # "precipMM_24h", "windspeedKmph_24h",
 )
 
 # calculate the correlation matrix
@@ -419,6 +409,54 @@ Observations:
 * The correlation matrix shows that the weather variables are weakly correlated with the response variables.
 * However, we only used a linear correlation measure, there might be non-linear relationships.
 
+### Full Feature-Feature Correlation
+
+```{r}
+feature_vars <- c(
+    "maxtempC", "mintempC",
+    "sunHour", "uvIndex", "moon_illumination", "DewPointC", "cloudcover",
+    "humidity", "precipMM", "pressure", "tempC", "windspeedKmph",
+    # "day_of_week", "month_of_year",
+    "hour_cos", "hour_sin", "hour_cos_12h", "hour_sin_12h",
+    "windspeed_x", "windspeed_y",
+    "precipMM_24h", "windspeedKmph_24h"
+)
+
+# calculate the correlation matrix
+correlation_matrix <- cor(
+    data_merged[, feature_vars],
+    use = "pairwise.complete.obs"
+)
+
+# reorder the correlation matrix
+reordered_indices <- hclust(as.dist(1 - abs(correlation_matrix)))$order
+correlation_matrix_reordered <- correlation_matrix[reordered_indices, reordered_indices]
+
+correlation_long <- melt(correlation_matrix_reordered)
+
+# plot the correlation matrix
+p <- ggplot(correlation_long, aes(x = Var1, y = Var2, fill = value)) +
+    geom_tile(color = "white") +
+    scale_fill_gradient2(
+        low = "blue", mid = "white", high = "red", 
+        midpoint = 0, limit = c(-1, 1), space = "Lab",
+        name = "Correlation"
+    ) +
+    geom_text(aes(label = round(value, 2)), size = 3.5) +
+    theme_minimal() +
+    theme(
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.text = element_text(size = 12)
+    ) +
+    labs(
+        x = "Variables",
+        y = "Variables",
+    )
+p
+
+ggsave("../report/assets/feature-correlation-matrix-final.png", p, width = 10, height = 8)
+```
+
 ## Building a Model
 
 Let's build a linear regression model for each response variable using the weather variables as predictors. We will check for multicollinearity and evaluate the model.
@@ -427,20 +465,13 @@ Since the data is from multiple cities, we will build separate models for each c
 
 ```{r, fig.width=12, fig.height=16}
 feature_vars <- c(
-    "precipMM", "pressure", "tempC", "visibility", "winddirDegree", "windspeedKmph",
-    "maxtempC", "mintempC"  # TODO: remove highly correlated features
-    # "winddir_cos", "winddir_sin", "windspeed_x", "windspeed_y"
-    # "precipMM_24h", "windspeedKmph_24h",
-
-
-
-    "sunHour", "uvIndex", "moon_illumination", "DewPointC", "WindGustKmph", "cloudcover",
+    "maxtempC", "mintempC",
+    "sunHour", "uvIndex", "moon_illumination", "DewPointC", "cloudcover",
     "humidity", "precipMM", "pressure", "tempC", "windspeedKmph", "day_of_week",
-    "month_of_year", "hour_cos", "hour_sin",
-    "hour_cos_12h", "hour_sin_12h",
-    "winddir_cos", "winddir_sin",
-    "precipMM_24h",
-    "windspeed_x", "windspeed_y"
+    "month_of_year",
+    "hour_cos", "hour_sin", "hour_cos_12h", "hour_sin_12h",
+    "windspeed_x", "windspeed_y",
+    "precipMM_24h", "windspeedKmph_24h"
 )
 
 feature_importance <- list()
