@@ -290,6 +290,8 @@ Once feature engineering was complete, we scaled all continuous features to ensu
 
 Finally, we performed the feature correlation analysis once again to make sure that we have not introduced any new collinearity issues. The results of this analysis are visualized in Figure~\ref{fig:final_feature_correlation}.
 
+The \textit{hour\_cos} looks highly correlated with \textit{uvIndex}, which is expected, as the UV index is higher during the day. Provided the abundance of data, we decided to keep both features for now, but we will revisit this decision during the model selection process.
+
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{assets/feature-correlation-matrix-final.png}
