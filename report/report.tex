@@ -299,8 +299,184 @@ The \textit{hour\_cos} looks highly negatively correlated with \textit{uvIndex},
   \label{fig:final_feature_correlation}
 \end{figure}
 
+\section{Methodology}
+
+% TODO a comment about separate models
+
+\subsection{Feature Selection}
+
+% The analysis incorporated a set of 22 features, including meteorological, temporal, and derived variables, chosen for their potential relevance to air quality dynamics. Features like wind vector components (windspeed_x, windspeed_y) and cyclic representations of time (hour_cos, hour_sin, hour_cos_12h, hour_sin_12h) were included to capture directional and periodic patterns, respectively.
+
+\subsection{Data Splitting and Filtering}
+
+For each city in the dataset, the data were split into training (2015-2018) and testing (2019) sets to ensure temporal independence in model evaluation. Records with missing or incomplete data were omitted, and cities or response variables were excluded if:
+
+\begin{itemize}
+  \item The response variable had zero values in the training period.
+  \item The training data lacked representation for all months of the year, potentially skewing temporal patterns.
+\end{itemize}
+
+\section{Model Fitting}
+
+Linear regression models were fitted independently for each response variable in each city. The general model specification was:
+
+\[
+Y_{C} = \beta_{0} + \sum_{i=1}^{n} \beta_{i} X_{i} + \epsilon
+\]
+
+where $Y_{C}$ is the response variable for city $C$, $X_{i}$ are the predictor variables, $\beta_{i}$ are the estimated coefficients, and $\epsilon$ is the residual error. This approach allowed for individualized models that could account for city-specific environmental dynamics.
+
+\subsection{Feature Importance Analysis}
+
+For each fitted model, feature importance was quantified using the estimated regression coefficients. Due to scaling done during feature engineering, the coefficients were normalized and assessing the relative contribution of each feature to the model was possible.
+
+\subsection{Performance Evaluation}
+
+Model performance was assessed using three primary metrics on the test dataset:
+
+\begin{itemize}
+  \item Pearson Correlation ($r$) between actual and predicted values.
+  \item Coefficient of Determination ($R^2$) as a measure of variance explained by the model.
+  \item Root Mean Square Error (RMSE) to quantify the average prediction error.
+\end{itemize}
+
+Performance metrics were aggregated by response variable and city to assess general trends.
+
+\section{Results}
+
+\subsection{Data Characteristics and Filtering Outcomes}
+
+Out of the initial dataset, several city-response combinations were excluded due to missing data or incomplete temporal coverage:
+
+\begin{itemize}
+  \item Mumbai: PM\textsubscript{2.5}, PM\textsubscript{10}, NH\textsubscript{3}, SO\textsubscript{2}, O\textsubscript{3}.
+\end{itemize}
+
+Otherwise, the retained datasets included robust representations across all months and had sufficient training records for model fitting.
+
+\subsection{Model Fit and Performance Metrics}
+
+The test $R^2$ across all 30 models ranged from 0.012 to 0.670 (median: 0.289), indicating varying levels of explanatory power. The test $r$ values ranged from 0.108 to 0.819 (median: 0.538), suggesting varying (low to high) predictive accuracy across cities and response variables.
+
+The aggregated performance metrics for each response variable are presented in Table~\ref{tab:performance_metrics_by_variable}.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rlrrr}
+  \hline
+  & Response variable & r & R\textsuperscript{2} & RMSE \\
+  \hline
+1 & CO & 0.346 & 0.138 & 0.331 \\ 
+  2 & NH3 & 0.339 & 0.157 & 0.418 \\ 
+  3 & NOx & 0.448 & 0.216 & 0.591 \\ 
+  4 & O3 & 0.648 & 0.427 & 0.577 \\ 
+  5 & PM10 & 0.694 & 0.491 & 0.425 \\ 
+  6 & PM2.5 & 0.727 & 0.535 & 0.434 \\ 
+  7 & SO2 & 0.266 & 0.088 & 0.385 \\ 
+    \hline
+\end{tabular}
+\caption{Aggregated performance metrics by response variable.}
+\label{tab:performance_metrics_by_variable}
+\end{table}
+
+The metrics suggest that the linear model's performance varied significantly across pollutants, with PM\textsubscript{2.5}, PM\textsubscript{10} and O\textsubscript{3} showing the highest predictive accuracy and average \textit{R\textsuperscript{2}} values of 0.535, 0.491 and 0.427, respectively, thus explaining roughly half of the variance in the test data. The models for CO and SO\textsubscript{2} had the lowest performance, with average \textit{R\textsuperscript{2}} values of 0.138 and 0.088, respectively.
+
+The aggregated performance metrics for each city are presented in Table~\ref{tab:performance_metrics_by_city}.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rlrrr}
+  \hline
+  & City & r & R\textsuperscript{2} & RMSE \\
+  \hline
+1 & Bengaluru & 0.433 & 0.246 & 0.463 \\ 
+  2 & Delhi & 0.590 & 0.374 & 0.413 \\ 
+  3 & Hyderabad & 0.605 & 0.396 & 0.388 \\ 
+  4 & Jaipur & 0.408 & 0.194 & 0.476 \\ 
+  5 & Mumbai & 0.203 & 0.042 & 0.694 \\ 
+    \hline
+\end{tabular}
+\caption{Aggregated performance metrics by city.}
+\label{tab:performance_metrics_by_city}
+\end{table}
+
+The city-specific results indicate that the models performed best in Hyderabad and Delhi, with average \textit{R\textsuperscript{2}} values of 0.396 and 0.374, respectively. Mumbai had the lowest performance, with an average \textit{R\textsuperscript{2}} of 0.042, although only two out of seven response variables were modelled for this city.
+
+The full raw results for each individual model are presented in Appendix A.
+
+\subsection{Key Predictors}
+
+% Feature importance analysis revealed consistent predictors across multiple cities:
+
+% Meteorological Variables: Temperature (tempC, mintempC), humidity, and wind speed were consistently significant.
+% Temporal Variables: month_of_year and cyclic time features (hour_cos, hour_sin) frequently explained diurnal and seasonal variations.
+% Derived Variables: Wind vector components (windspeed_x, windspeed_y) captured spatial effects of wind direction on pollutant dispersion.
+
+\subsection{Visualization}
+
+% Feature importance was visualized using bar plots, grouped by response variable and city. The plots highlighted city-specific variations; for instance, humidity was a dominant predictor in coastal cities, while windspeed_x had higher importance in inland regions.
+
+\subsection{Summary Statistics}
+
+% Aggregated statistics by response variable showed:
+
+% Mean 
+% 𝑅
+% 2
+% R 
+% 2
+%  : 0.72 (range: 0.65–0.85).
+% Mean RMSE: Varied based on pollutant but demonstrated consistent scaling relative to response variable magnitudes.
+% Mean Pearson correlation (
+% 𝑟
+% r): 0.70 (range: 0.65–0.75).
+% These results suggest that the models effectively captured the variability in air quality metrics while highlighting regional dependencies in feature importance.
+
 \newpage
 
+\section*{Appendix A: Model Performance Metrics}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rllrrr}
+  \hline
+  & City & Response variable & r & R\textsuperscript{2} & RMSE \\
+  \hline
+1 & Bengaluru & PM2.5 & 0.717 & 0.514 & 0.434 \\ 
+  2 & Bengaluru & PM10 & 0.651 & 0.424 & 0.391 \\ 
+  3 & Bengaluru & NOx & 0.421 & 0.177 & 0.808 \\ 
+  4 & Bengaluru & NH3 & 0.108 & 0.012 & 0.390 \\ 
+  5 & Bengaluru & CO & 0.314 & 0.098 & 0.194 \\ 
+  6 & Bengaluru & SO2 & 0.130 & 0.017 & 0.298 \\ 
+  7 & Bengaluru & O3 & 0.693 & 0.480 & 0.727 \\ 
+  8 & Delhi & PM2.5 & 0.813 & 0.661 & 0.475 \\ 
+  9 & Delhi & PM10 & 0.749 & 0.561 & 0.444 \\ 
+  10 & Delhi & NOx & 0.543 & 0.295 & 0.519 \\ 
+  11 & Delhi & NH3 & 0.662 & 0.438 & 0.244 \\ 
+  12 & Delhi & CO & 0.338 & 0.114 & 0.348 \\ 
+  13 & Delhi & SO2 & 0.401 & 0.161 & 0.353 \\ 
+  14 & Delhi & O3 & 0.626 & 0.391 & 0.504 \\ 
+  15 & Hyderabad & PM2.5 & 0.778 & 0.605 & 0.409 \\ 
+  16 & Hyderabad & PM10 & 0.819 & 0.670 & 0.412 \\ 
+  17 & Hyderabad & NOx & 0.560 & 0.314 & 0.478 \\ 
+  18 & Hyderabad & NH3 & 0.344 & 0.118 & 0.379 \\ 
+  19 & Hyderabad & CO & 0.601 & 0.361 & 0.135 \\ 
+  20 & Hyderabad & SO2 & 0.394 & 0.155 & 0.500 \\ 
+  21 & Hyderabad & O3 & 0.743 & 0.552 & 0.403 \\ 
+  22 & Jaipur & PM2.5 & 0.599 & 0.359 & 0.419 \\ 
+  23 & Jaipur & PM10 & 0.558 & 0.311 & 0.454 \\ 
+  24 & Jaipur & NOx & 0.494 & 0.244 & 0.461 \\ 
+  25 & Jaipur & NH3 & 0.241 & 0.058 & 0.658 \\ 
+  26 & Jaipur & CO & 0.291 & 0.085 & 0.278 \\ 
+  27 & Jaipur & SO2 & 0.138 & 0.019 & 0.390 \\ 
+  28 & Jaipur & O3 & 0.533 & 0.284 & 0.673 \\ 
+  29 & Mumbai & NOx & 0.222 & 0.049 & 0.687 \\ 
+  30 & Mumbai & CO & 0.185 & 0.034 & 0.700 \\ 
+    \hline
+\end{tabular}
+\end{table}
+
+\newpage
 
 % ---------------------------------------------------------------------------------------
 % ---------------------------------------------------------------------------------------
