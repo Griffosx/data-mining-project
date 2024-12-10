@@ -33,6 +33,8 @@ library(gridExtra, warn.conflicts = FALSE)
 library(patchwork)
 library(reshape2)
 library(zoo)
+library(fastDummies)
+library(glmnet)
 ```
 
 ## Loading Data
@@ -457,7 +459,7 @@ p
 ggsave("../report/assets/feature-correlation-matrix-final.png", p, width = 10, height = 8)
 ```
 
-## Building a Model
+## Building the Initial Model
 
 Let's build a linear regression model for each response variable using the weather variables as predictors. We will check for multicollinearity and evaluate the model.
 
@@ -465,8 +467,9 @@ Since the data is from multiple cities, we will build separate models for each c
 
 ```{r, fig.width=12, fig.height=16}
 feature_vars <- c(
-    "maxtempC", "mintempC",
-    "sunHour", "uvIndex", "moon_illumination", "DewPointC", "cloudcover",
+    # removed due to multicollinearity
+    # "maxtempC", "mintempC", "DewPointC",
+    "sunHour", "uvIndex", "moon_illumination", "cloudcover",
     "humidity", "precipMM", "pressure", "tempC", "windspeedKmph", "day_of_week",
     "month_of_year",
     "hour_cos", "hour_sin", "hour_cos_12h", "hour_sin_12h",
@@ -506,6 +509,8 @@ for (city in city_name_map$air_quality) {
             data_train[[var]] ~ .,
             data = data_train[, feature_vars]
         )
+        # vif_values <- car::vif(model)
+        # print(vif_values[vif_values[,3] > 4, ])
 
         # add the model to the list of feature importance
         feature_importance_row <- data.frame(
@@ -540,39 +545,38 @@ for (city in city_name_map$air_quality) {
 stats_values <- bind_rows(stats_values)
 cat("Mean stats by response variable:\n")
 stats_values %>%
-    group_by(city) %>%
+    group_by(var) %>%
     summarise(r = mean(r), r2 = mean(r2), rmse = mean(rmse)) %>%
     xtable(., digits = 3)
 
 print(mean(stats_values$r2))
 
+summary(stats_values$r)
+
 feature_importance <- bind_rows(feature_importance)
-feature_importance_matrix <- dcast(feature_importance, feature ~ response_var + city, value.var = "estimate")
+# feature_importance_matrix <- dcast(feature_importance, feature ~ response_var + city, value.var = "estimate")
 
-# plot the feature importance
-ggplot(feature_importance, aes(x = estimate, y = feature, fill = city)) +
-    geom_bar(stat = "identity") +
-    facet_wrap(~response_var, scales = "free") +
-    labs(title = "Feature Importance")
-```
+# plot the feature importance heatmap for each response variable and city
+p <- ggplot(feature_importance, aes(x = feature, y = city, fill = estimate)) +
+    geom_tile() +
+    scale_fill_gradient2(
+        low = "blue", mid = "white", high = "red", 
+        midpoint = 0, limit = c(-0.5, 0.5), space = "Lab",
+        oob = scales::squish,
+        name = "Estimate"
+    ) +
+    theme_minimal() +
+    theme(
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.text = element_text(size = 12)
+    ) +
+    facet_wrap(~ response_var, scales = "free_y", ncol = 1) +
+    geom_text(aes(label = round(estimate, 2)), size = 2.5) +
+    labs(
+        x = "Variables",
+        y = "Response Variables",
+    )
+p
 
-<!-- ## Multicollinearity -->
-
-```{r}
-# vif_rows <- list()
-# for (var in response_vars) {
-#     cat(paste("Checking for multicollinearity for", var, "\n"))
-
-#     # calculate the VIF for each predictor variable
-#     model <- lm(data_merged[[var]] ~ ., data = data_merged[, c(var, feature_vars)])
-#     vif_values <- car::vif(model)
-
-#     vif_row <- as.data.frame(t(vif_values[-1, 3]))
-#     vif_row[["response_var"]] <- var
-
-#     vif_rows <- c(vif_rows, list(vif_row))
-# }
-
-# vif_data <- bind_rows(vif_rows)
-# print(vif_data)
+ggsave("../report/assets/feature-importance-heatmap.png", p, width = 12, height = 14)
 ```
