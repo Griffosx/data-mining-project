@@ -173,7 +173,7 @@ In the following subsections, we first examine our response variables, analyzing
 
 The pollution dataset contained twelve potential response variables measuring different air quality parameters: PM\textsubscript{2.5}, PM\textsubscript{10}, NO, NO\textsubscript{2}, NOx, NH\textsubscript{3}, CO, SO\textsubscript{2}, O\textsubscript{3}, Benzene, Toluene, and Xylene. While we initially considered calculating and using the Air Quality Index (AQI) as a comprehensive response variable, this approach proved impractical due to the dataset's structure. The AQI calculation requires complete data across multiple pollutants, and the presence of missing values in our dataset would have significantly limited our ability to compute this index accurately.
 
-After careful consideration of data completeness and relevance, we narrowed our focus to seven key pollutants that demonstrated the most complete records: PM\textsubscript{2.5}, PM\textsubscript{10}, NOx, NH\textsubscript{3}, CO, SO\textsubscript{2}, and O\textsubscript{3}. The analysis of missing data revealed varying degrees of incompleteness across these pollutants, with CO showing the lowest proportion at 4\% missing values, followed by NOx at 9\%, SO\textsubscript{2} at 19\%, PM\textsubscript{2.5} and O\textsubscript{3} both at approximately 20\%, PM\textsubscript{10} at 26\%, and NH\textsubscript{3} showing the highest proportion at 30\% missing values.
+After careful consideration of data completeness and relevance, we narrowed our focus to seven key pollutants that demonstrated the most complete records: PM\textsubscript{2.5}, PM\textsubscript{10}, NOx, NH\textsubscript{3}, CO, SO\textsubscript{2}, and O\textsubscript{3}. The analysis of missing data revealed varying degrees of incompleteness across these pollutants, with CO showing the lowest proportion at 4\% missing values, followed by NOx at 9\%, SO\textsubscript{2} at 19\%, PM\textsubscript{2.5} and O\textsubscript{3} both at approximately 20\%, PM\textsubscript{10} at 26\%, and NH\textsubscript{3} showing the highest proportion at 30\% missing values. Further analysis can be viewed in section \ref{subsubsection:missing_data}.
 
 To maintain data integrity and avoid potential biases, we chose to handle missing values through complete case deletion rather than imputation. This decision was supported by the large volume of available data in our merged dataset, which allowed us to maintain a robust sample size even after removing incomplete records. We applied this deletion approach consistently across both air quality parameters and meteorological features to ensure data consistency.
 
@@ -187,6 +187,8 @@ Initial exploratory analysis revealed that the distributions of these pollutants
   \caption{Pollutants levels by city}
   \label{fig:skewness}
 \end{figure}
+
+While the middle plot for PM10 shows a spike at 100 ppm, it represents a small fraction of the data and could still be correct (but rounded) data. We didn't pursue a further investigation and decided to leave these datapoints in the dataset.
 
 To address this skewness and make the data more suitable for statistical analysis, we applied a logarithmic transformation to all pollutant measurements. Since logarithmic transformation requires strictly positive values, we added a constant of 1 to each measurement before applying the transformation. The effectiveness of this transformation is demonstrated in Figure~\ref{fig:log_scaled_pollutants}, where the transformed distributions more closely approximate normal distributions, providing a more suitable basis for our subsequent analyses.
 
@@ -237,7 +239,7 @@ Before applying feature selection, we conducted a correlation analysis of the me
     \item \textit{Moon\_illumination} was not correlated with any other variable, as expected.
 \end{itemize}
 
-Based on these findings, we identified several highly correlated group of features, such as \textit{tempC} and \textit{FeelsLikeC}, \textit{HeatIndexC}, and \textit{WindChillC}, which could potentially introduce collinearity issues in our models. To address this, we have removed the highly correlated features, retaining only one representative variable from each correlated pair. This feature selection process aimed to reduce redundancy and improve model interpretability by focusing on the most relevant predictors. The following predictors were removed from our dataset:
+Based on these findings, we identified several highly correlated group of features, such as \textit{tempC} and \textit{FeelsLikeC}, \textit{HeatIndexC}, and \textit{WindChillC}, which could potentially introduce collinearity issues in our models. To address this, we have removed the highly correlated features, retaining only one representative variable from each correlated group. This feature selection process aimed to reduce redundancy and improve model interpretability by focusing on the most relevant predictors. The following predictors were removed from our dataset:
 
 \begin{itemize}
     \item \textit{totalSnow\_cm} was removed due to zero variance.
@@ -246,7 +248,7 @@ Based on these findings, we identified several highly correlated group of featur
     \item \textit{Visibility} was removed due to it being a possible leakage feature.
 \end{itemize}
 
-We did not remove any other correlated features at this stage, as we have an abundance of and these features may still provide valuable information for our models. We may revisit this decision at a later stage if necessary.
+We did not remove any other correlated features at this stage, as they may still provide valuable information for our models. In the subsection \ref{subsection:feature_selection} we will perform a multicollinearity test and decide to remove three additional features.
 
 Following this, we analyzed the correlation between the selected features (those obtained after removing the highly correlated ones identified in the previous analysis) and the response variables to assess their potential predictive power. The resulting correlation analysis is visualized in Figure~\ref{fig:feature_response_correlation}.
 
@@ -267,7 +269,7 @@ The analysis revealed the following:
 
 However, since this analysis relied solely on linear correlation measures, it is possible that important non-linear relationships remain undetected. To capture such relationships, several feature transformations were performed in subsequent steps.
 
-\subsubsection{Missing Values Analysis}
+\subsubsection{Missing Value Analysis} \label{subsubsection:missing_data}
 
 In our analysis of the missing values, we found significant proportions of missing values for several pollutants: PM\textsubscript{2.5} (29.3\%), O\textsubscript{3} (20.1\%), PM\textsubscript{10} (27.6\%) and NH\textsubscript{3} (29.3\%). The missing data for these variables is not uniformly distributed but appears to be geographically concentrated, with Mumbai accounting for a significant portion of the missing values, suggesting that the missingness is not random but rather geographically determined.
 
@@ -293,15 +295,27 @@ Table \ref{tab:missing_values} shows the detailed breakdown of missing values fo
 \end{table}
 
 A significant proportion of missing data for several variables is concentrated in Mumbai. Specifically:
-\begin{itemize}
-   \item NH\textsubscript{3}: 67\% of the total missing values come from Mumbai
-   \item PM\textsubscript{10}: 56.5\% of the total missing values are from Mumbai
-   \item O\textsubscript{3}: 76\% of the total missing values are from Mumbai  
-   \item PM\textsubscript{2.5}: 77\% of the total missing values are from Mumbai
-\end{itemize}
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{lr}
+  \hline
+  Pollutant & Missing Values from Mumbai \\
+  \hline
+  NH\textsubscript{3} & 67.0 \\
+  PM\textsubscript{10} & 56.5 \\
+  O\textsubscript{3} & 76.0 \\
+  PM\textsubscript{2.5} & 77.0 \\
+  SO\textsubscript{2} & 82.9 \\
+  NO\textsubscript{x} & 71.0 \\
+  CO & 24.1 \\
+  \hline
+  \end{tabular}
+  \caption{Percentage of total missing values from Mumbai by pollutant}
+  \label{tab:mumbai_missing}
+  \end{table}
+
 
 These percentages indicate that a large portion of the missing data for these key environmental variables is associated with Mumbai. This suggests that the missing data are not missing at random and may be influenced by factors specific to the Mumbai region, such as data collection or reporting challenges. Given the concentration of missing data in this specific city, we can conclude that ignoring these missing values will not significantly affect the general analysis of the dataset.
-
 
 \subsection{Feature Engineering}
 
@@ -332,7 +346,7 @@ Once feature engineering was complete, we scaled all continuous features to ensu
 
 Finally, we performed the feature correlation analysis once again to make sure that we have not introduced any new collinearity issues. The results of this analysis are visualized in Figure~\ref{fig:final_feature_correlation}.
 
-The \textit{hour\_cos} looks highly negatively correlated with \textit{uvIndex}, which is expected, as the UV index is higher during the day. Provided the abundance of data, we decided to keep both features for now, but we will revisit this decision during the model selection process.
+The \textit{hour\_cos} looks highly negatively correlated with \textit{uvIndex}, which is expected, as the UV index is higher during the day. We decided to keep both features as they represent different types of data - one is temporal, the other is meteorological.
 
 \begin{figure}[H]
   \centering
@@ -347,7 +361,7 @@ The exploratory data analysis showed that different cities exhibit unique tempor
 
 Given the distinct patterns observed across different cities, we chose to fit independent linear regression models for each city and response variable. This city-specific approach allowed us to capture local environmental dynamics and pollution patterns more effectively than a single unified model.
 
-\subsection{Feature Selection}
+\subsection{Feature Selection} \label{subsection:feature_selection}
 
 Initially, the analysis incorporated a set of 7 response variables and 22 features, chosen for their potential relevance to air pollution levels. The set of predictors included:
 
@@ -357,7 +371,7 @@ Initially, the analysis incorporated a set of 7 response variables and 22 featur
   \item \textbf{Temporal Features}: \textit{day\_of\_week}, \textit{month\_of\_year}, \textit{hour\_cos}, \textit{hour\_sin}, \textit{hour\_cos\_12h}, \textit{hour\_sin\_12h}
 \end{itemize}
 
-During the modeling process, we performed VIF analysis to identify and remove any predictors that introduced multicollinearity issues. There were three features that consistently exhibited VIF $>$ 4 across all models: \textit{minTempC}, \textit{maxTempC}, and \textit{DewPointC}. To address this, we removed these features from our dataset, ensuring that our models were not affected by multicollinearity.
+During the modeling process, we performed Variance Inflation Factor (VIF) analysis to identify and remove any predictors that introduced multicollinearity issues. There were three features that consistently exhibited VIF $>$ 4 across all models: \textit{minTempC}, \textit{maxTempC}, and \textit{DewPointC}. To address this, we removed these features from our dataset, ensuring that our models were not affected by multicollinearity. Following the removal of these variables, multicollinearity analysis no longer identified any variables with high VIF values.
 
 \subsection{Data Splitting and Filtering}
 
@@ -535,7 +549,49 @@ Finally, future work should focus on developing real-time prediction capabilitie
 
 \newpage
 
-\section*{Appendix B: Feature Importance Heatmap}
+
+\section*{Appendix B: Random Forest Model Performance Metrics}
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{rllrr}
+  \hline
+  & City & Response variable & R\textsuperscript{2} & RMSE \\
+  \hline
+  1 & Bengaluru & PM2.5 & 0.167 & 20.930 \\
+  2 & Bengaluru & PM10 & 0.224 & 33.716 \\
+  3 & Bengaluru & NOx & 0.015 & 25.354 \\
+  4 & Bengaluru & NH3 & 0.007 & 11.079 \\
+  5 & Bengaluru & CO & 0.001 & 0.907 \\
+  6 & Bengaluru & SO2 & 0.000 & 2.712 \\
+  7 & Bengaluru & O3 & 0.311 & 25.933 \\
+  8 & Delhi & PM2.5 & 0.366 & 76.161 \\
+  9 & Delhi & PM10 & 0.282 & 117.638 \\
+  10 & Delhi & NOx & 0.060 & 42.168 \\
+  11 & Delhi & NH3 & 0.206 & 12.727 \\
+  12 & Delhi & CO & 0.000 & 1.688 \\
+  13 & Delhi & SO2 & 0.026 & 7.559 \\
+  14 & Delhi & O3 & 0.107 & 29.042 \\
+  15 & Hyderabad & PM2.5 & 0.364 & 19.502 \\
+  16 & Hyderabad & PM10 & 0.541 & 34.500 \\
+  17 & Hyderabad & NOx & 0.089 & 12.403 \\
+  18 & Hyderabad & NH3 & 0.021 & 7.236 \\
+  19 & Hyderabad & CO & 0.002 & 0.644 \\
+  20 & Hyderabad & SO2 & 0.067 & 5.649 \\
+  21 & Hyderabad & O3 & 0.376 & 14.878 \\
+  22 & Jaipur & PM2.5 & 0.088 & 30.213 \\
+  23 & Jaipur & PM10 & 0.054 & 79.920 \\
+  24 & Jaipur & NOx & 0.052 & 26.645 \\
+  25 & Jaipur & NH3 & 0.021 & 20.445 \\
+  26 & Jaipur & CO & 0.001 & 0.670 \\
+  27 & Jaipur & SO2 & 0.008 & 6.241 \\
+  28 & Jaipur & O3 & 0.195 & 26.338 \\
+  \hline
+  \end{tabular}
+  \caption{Performance metrics for air quality predictions across different cities and pollutants}
+  \label{tab:air_quality_results}
+  \end{table}
+
+\section*{Appendix C: Feature Importance Heatmap}
 
 \begin{figure}[H]
   \centering

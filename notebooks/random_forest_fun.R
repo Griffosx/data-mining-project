@@ -457,8 +457,8 @@ print(combined_plot)
 
 # Define all target variables
 target_vars <- c("PM2.5", "PM10", "NOx", "NH3", "CO", "SO2", "O3")
-cities <- c("Delhi")
-cities <- c("Bengaluru")
+target_vars <- c("NOx", "CO")
+cities <- c("Mumbai")
 # cities <- c("Bengaluru", "Delhi", "Hyderabad", "Jaipur", "Mumbai")
 
 # Function to run analysis for all pollutants
