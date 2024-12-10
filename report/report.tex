@@ -267,6 +267,41 @@ The analysis revealed the following:
 
 However, since this analysis relied solely on linear correlation measures, it is possible that important non-linear relationships remain undetected. To capture such relationships, several feature transformations were performed in subsequent steps.
 
+\subsubsection{Missing Values Analysis}
+
+In our analysis of the missing values, we found significant proportions of missing values for several pollutants: PM\textsubscript{2.5} (29.3\%), O\textsubscript{3} (20.1\%), PM\textsubscript{10} (27.6\%) and NH\textsubscript{3} (29.3\%). The missing data for these variables is not uniformly distributed but appears to be geographically concentrated, with Mumbai accounting for a significant portion of the missing values, suggesting that the missingness is not random but rather geographically determined.
+
+Table \ref{tab:missing_values} shows the detailed breakdown of missing values for Mumbai.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llrr}
+\hline
+& Pollutant & Missing values & Missing (\%) \\
+\hline
+1 & NH\textsubscript{3} & 38,750 & 88.4 \\
+2 & PM\textsubscript{10} & 30,797 & 70.3 \\
+3 & SO\textsubscript{2} & 30,024 & 68.5 \\
+4 & PM\textsubscript{2.5} & 30,008 & 68.5 \\
+5 & O\textsubscript{3} & 29,927 & 68.3 \\
+6 & NO\textsubscript{x} & 13,139 & 30.0 \\
+7 & CO & 1,888 & 4.3 \\
+\hline
+\end{tabular}
+\caption{Missing values analysis for each pollutant in Mumbai.}
+\label{tab:missing_values}
+\end{table}
+
+A significant proportion of missing data for several variables is concentrated in Mumbai. Specifically:
+\begin{itemize}
+   \item NH\textsubscript{3}: 67\% of the total missing values come from Mumbai
+   \item PM\textsubscript{10}: 56.5\% of the total missing values are from Mumbai
+   \item O\textsubscript{3}: 76\% of the total missing values are from Mumbai  
+   \item PM\textsubscript{2.5}: 77\% of the total missing values are from Mumbai
+\end{itemize}
+
+These percentages indicate that a large portion of the missing data for these key environmental variables is associated with Mumbai. This suggests that the missing data are not missing at random and may be influenced by factors specific to the Mumbai region, such as data collection or reporting challenges. Given the concentration of missing data in this specific city, we can conclude that ignoring these missing values will not significantly affect the general analysis of the dataset.
+
 
 \subsection{Feature Engineering}
 
@@ -308,7 +343,9 @@ The \textit{hour\_cos} looks highly negatively correlated with \textit{uvIndex},
 
 \section{Methodology}
 
-The above exploratory data analysis showed that different cities exhibit unique temporal and environmental patterns that influence air pollution levels. To capture these dynamics effectively, we chose to fit independent linear regression models for each city and response variable.
+The exploratory data analysis showed that different cities exhibit unique temporal and environmental patterns that influence air pollution levels. To capture these dynamics effectively, we initially experimented with two modeling approaches: multiple linear regression and Random Forest. While Random Forest models are often effective for capturing complex, non-linear relationships, our preliminary analysis showed that the linear models consistently achieved better performance across different cities and pollutants.
+
+Given the distinct patterns observed across different cities, we chose to fit independent linear regression models for each city and response variable. This city-specific approach allowed us to capture local environmental dynamics and pollution patterns more effectively than a single unified model.
 
 \subsection{Feature Selection}
 
@@ -429,11 +466,28 @@ The full feature importance heatmap is presented in Appendix B. The analysis rev
   \item \textbf{Derived features}: TODO
 \end{itemize}
 
-\section{Discussion}
-
 \section{Conclusion}
 
+This study developed and evaluated independent linear regression models to predict air pollution levels across five major Indian cities, analyzing seven key pollutants using meteorological and temporal predictors. Our research yielded several important findings:
+
+First, the predictive performance varied significantly across both pollutants and cities. The models showed strongest performance in predicting PM\textsubscript{2.5} (R\textsuperscript{2} = 0.538), PM\textsubscript{10} (R\textsuperscript{2} = 0.492), and O\textsubscript{3} (R\textsuperscript{2} = 0.443) levels, while struggling with CO (R\textsuperscript{2} = 0.132) and SO\textsubscript{2} (R\textsuperscript{2} = 0.102). Geographically, the models performed best in Delhi (R\textsuperscript{2} = 0.403) and Hyderabad (R\textsuperscript{2} = 0.390), suggesting that pollution patterns in these cities may be more strongly influenced by the meteorological and temporal factors included in our analysis. The notably poor performance in Mumbai (R\textsuperscript{2} = 0.007) can be largely attributed to the extensive missing data in this city's dataset, which led to the exclusion of five out of seven pollutants from the analysis.
+
+Second, despite their simplicity, linear models outperformed more complex Random Forest models in our initial experiments. This unexpected finding suggests that the relationship between meteorological conditions and pollution levels may be more linear than previously assumed, at least within the range of conditions observed in our dataset. The success of linear models also provides practical advantages in terms of interpretability and computational efficiency.
+
+Third, our feature importance analysis revealed that temporal patterns, particularly monthly variations, were consistently among the strongest predictors of pollution levels. This finding highlights the significance of seasonal effects on air quality in Indian cities. Among meteorological variables, humidity emerged as a particularly important predictor, showing consistent negative correlations with multiple pollutants across different cities.
+
+Several limitations of our study should be noted. The models' performance varied considerably across different pollutants and cities, with some combinations showing relatively weak predictive power. Additionally, our analysis was limited to a five-year period and five cities, which may not capture the full range of pollution patterns across India's diverse urban landscapes.
+
+Despite these limitations, our findings demonstrate that air pollution levels in Indian cities can be predicted with moderate accuracy using readily available meteorological and temporal data. The reliable prediction of PM\textsubscript{2.5} and PM\textsubscript{10} levels is particularly significant given their well-documented health impacts.
+
+
 \section{Future Work}
+
+Our study suggests several promising directions for future research. First, while our linear models showed reasonable performance, exploring more sophisticated approaches such as generalized additive models (GAMs) could better capture non-linear relationships in the data. These models could be particularly valuable for pollutants like CO and SO\textsubscript{2} where our current approach showed limited predictive power.
+
+Second, the incorporation of additional predictors could significantly enhance model performance. Satellite data could provide insights into regional air masses and pollution transport, while traffic data and industrial activity metrics could help account for anthropogenic emission sources. Additionally, data about special events (such as festivals or policy changes) could improve predictions during unusual pollution episodes.
+
+Finally, future work should focus on developing real-time prediction capabilities. This would involve creating automated data pipelines that integrate weather forecasts to provide advance warnings of potential high-pollution events. Such a system, combined with appropriate uncertainty quantification, could serve as a valuable tool for public health protection and urban air quality management.
 
 \newpage
 

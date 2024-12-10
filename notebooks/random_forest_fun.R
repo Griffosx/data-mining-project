@@ -187,7 +187,7 @@ train_city <- function(city, train_data, test_data, predictors, target_var, mode
   )
 }
 
-prepare_model_data <- function(data, target_var, predictors) {
+prepare_model_data_no_log <- function(data, target_var, predictors) {
   target_sym <- sym(target_var)
   
   transformed_data <- data %>%
@@ -210,7 +210,7 @@ prepare_model_data <- function(data, target_var, predictors) {
   )
 }
 
-train_city <- function(city, train_data, test_data, predictors, target_var, model_params) {
+train_city_no_log <- function(city, train_data, test_data, predictors, target_var, model_params) {
   target_sym <- sym(target_var)
   
   train_city_data <- train_data %>% 
@@ -295,6 +295,9 @@ weather <- load_weather_data(
   config$date_range
 )
 
+View(weather)
+colnames(weather)
+
 # Merge features and add year column
 data <- inner_join(
   air_quality,
@@ -305,6 +308,7 @@ data <- inner_join(
   create_weather_features()
 
 View(data)
+colnames(data)
 
 # Define model variables
 predictors <- c(
@@ -360,16 +364,6 @@ print_target_statistics <- function(data, target_vars, predictors) {
 
 targets <- list("PM10", "PM2.5")
 print_target_statistics(data, targets, predictors)
-
-# Split data
-# set.seed(123)
-# train_idx <- createDataPartition(
-#   model_data$target_log,
-#   p = config$model_params$train_split,
-#   list = FALSE
-# )
-# train_data <- model_data[train_idx, ]
-# test_data <- model_data[-train_idx, ]
 
 
 bangalore_results = train_city("Bengaluru", train_data, test_data, predictors, target_var, config$model_params)
@@ -460,3 +454,94 @@ combined_plot <- ggplot(all_predictions, aes(x = actual, y = predicted, color = 
 print(final_metrics)
 print(combined_plot)
 
+
+# Define all target variables
+target_vars <- c("PM2.5", "PM10", "NOx", "NH3", "CO", "SO2", "O3")
+cities <- c("Delhi")
+cities <- c("Bengaluru")
+# cities <- c("Bengaluru", "Delhi", "Hyderabad", "Jaipur", "Mumbai")
+
+# Function to run analysis for all pollutants
+analyze_all_pollutants <- function(data, cities, target_vars, predictors, config) {
+  results <- list()
+  
+  for(target_var in target_vars) {
+    cat("\nProcessing", target_var, "\n")
+    
+    # Prepare data for current target variable
+    split_data <- prepare_model_data(data, target_var, predictors)
+    train_data <- split_data$train
+    test_data <- split_data$test
+    
+    # Initialize storage for this pollutant
+    city_results <- list()
+    all_metrics <- data.frame()
+    all_predictions <- data.frame()
+    
+    # Process each city
+    for(city in cities) {
+      tryCatch({
+        city_result <- train_city(city, train_data, test_data, predictors, target_var, config$model_params)
+        
+        # Store results
+        city_results[[city]] <- city_result
+        all_metrics <- rbind(all_metrics, city_result$evaluation$metrics)
+        all_predictions <- rbind(
+          all_predictions,
+          data.frame(city_result$evaluation$predictions, City = city)
+        )
+        
+        cat("Completed analysis for", city, "-", target_var, "\n")
+      }, error = function(e) {
+        cat("Error processing", city, "for", target_var, ":", e$message, "\n")
+      })
+    }
+    
+    # Calculate average metrics
+    average_metrics <- data.frame(
+      City = "Average",
+      RMSE = mean(all_metrics$RMSE),
+      R2 = mean(all_metrics$R2)
+    )
+    
+    final_metrics <- rbind(all_metrics, average_metrics)
+    
+    # Create combined plot
+    combined_plot <- ggplot(all_predictions, aes(x = actual, y = predicted, color = City)) +
+      geom_point(alpha = 0.3) +
+      geom_abline(slope = 1, intercept = 0, color = "black", linetype = "dashed") +
+      theme_minimal() +
+      labs(
+        title = paste("Actual vs Predicted", target_var, "- All Cities"),
+        x = paste("Actual", target_var),
+        y = paste("Predicted", target_var)
+      ) +
+      facet_wrap(~City)
+    
+    # Store all results for this pollutant
+    results[[target_var]] <- list(
+      city_results = city_results,
+      final_metrics = final_metrics,
+      combined_plot = combined_plot,
+      all_predictions = all_predictions
+    )
+  }
+  
+  return(results)
+}
+
+# Function to print summary of results
+print_analysis_summary <- function(results) {
+  for(pollutant in names(results)) {
+    cat("\n=== Results for", pollutant, "===\n")
+    print(results[[pollutant]]$final_metrics)
+    print(results[[pollutant]]$combined_plot)
+  }
+}
+
+# Main execution
+# Run the analysis
+all_results <- analyze_all_pollutants(data, cities, target_vars, predictors, config)
+
+# Print summary
+print_analysis_summary(all_results)
