@@ -357,9 +357,7 @@ The \textit{hour\_cos} looks highly negatively correlated with \textit{uvIndex},
 
 \section{Methodology}
 
-The exploratory data analysis showed that different cities exhibit unique temporal and environmental patterns that influence air pollution levels. To capture these dynamics effectively, we initially experimented with two modeling approaches: multiple linear regression and Random Forest. While Random Forest models are often effective for capturing complex, non-linear relationships, our preliminary analysis showed that the linear models consistently achieved better performance across different cities and pollutants.
-
-Given the distinct patterns observed across different cities, we chose to fit independent linear regression models for each city and response variable. This city-specific approach allowed us to capture local environmental dynamics and pollution patterns more effectively than a single unified model.
+The above exploratory data analysis showed that different cities exhibit unique temporal and environmental patterns that influence air pollution levels. To capture these dynamics effectively, we chose to fit independent linear regression models for each city and response variable.
 
 \subsection{Feature Selection} \label{subsection:feature_selection}
 
@@ -476,21 +474,23 @@ The full feature importance heatmap is presented in Appendix B. The analysis rev
 
 \begin{itemize}
   \item \textbf{Temporal variables}: Month of the year commonly emerged as the most significant predictor, with the months of March to September or October showing the highest negative coefficients across many response variables. The hour of the day features also showed some importance.
-  \item \textbf{Meteorological variables}: Humidity was consistently a negative predictor across multiple pollutants, with negative coefficients indicating an inverse relationship with pollutant levels. Wind speed and UV index also showed importance for some pollutants. TODO
-  \item \textbf{Derived features}: TODO
+
+  \item \textbf{Meteorological variables}: Humidity was consistently a negative predictor across multiple pollutants, with negative coefficients indicating an inverse relationship with pollutant levels. Wind speed and UV index also showed importance for some pollutants.
+
+  \item \textbf{Derived features}: \textit{precipMM\_24} demonstrated negative associations with PM\textsubscript{10} and PM\textsubscript{2.5}, while showing positive associations with NH\textsubscript{3} and NO\textsubscript{x}. The \textit{hour\_cos} feature exhibited positive correlations with PM\textsubscript{10}, PM\textsubscript{2.5}, and NO\textsubscript{x}, while showing a negative correlation with O\textsubscript{3}.
 \end{itemize}
 
 \section{Conclusion}
 
 This study developed and evaluated independent linear regression models to predict air pollution levels across five major Indian cities, analyzing seven key pollutants using meteorological and temporal predictors. Our research yielded several important findings:
 
-First, the predictive performance varied significantly across both pollutants and cities. The models showed strongest performance in predicting PM\textsubscript{2.5} (R\textsuperscript{2} = 0.538), PM\textsubscript{10} (R\textsuperscript{2} = 0.492), and O\textsubscript{3} (R\textsuperscript{2} = 0.443) levels, while struggling with CO (R\textsuperscript{2} = 0.132) and SO\textsubscript{2} (R\textsuperscript{2} = 0.102). Geographically, the models performed best in Delhi (R\textsuperscript{2} = 0.403) and Hyderabad (R\textsuperscript{2} = 0.390), suggesting that pollution patterns in these cities may be more strongly influenced by the meteorological and temporal factors included in our analysis. The notably poor performance in Mumbai (R\textsuperscript{2} = 0.007) can be largely attributed to the extensive missing data in this city's dataset, which led to the exclusion of five out of seven pollutants from the analysis.
+First, the predictive performance varied significantly across both pollutants and cities. The models showed strongest performance in predicting PM\textsubscript{2.5} (R\textsuperscript{2} = 0.538), PM\textsubscript{10} (R\textsuperscript{2} = 0.492), and O\textsubscript{3} (R\textsuperscript{2} = 0.443) levels, while struggling with CO (R\textsuperscript{2} = 0.132) and SO\textsubscript{2} (R\textsuperscript{2} = 0.102). Geographically, the models performed best in Delhi (R\textsuperscript{2} = 0.403) and Hyderabad (R\textsuperscript{2} = 0.390), suggesting that pollution patterns in these cities may be more strongly influenced by the meteorological and temporal factors included in our analysis. The notably poor performance in Mumbai (R\textsuperscript{2} = 0.007) could potentially be attributed to the extensive missing data in this city's dataset, which led to the exclusion of five out of seven pollutants from the analysis.
 
-Second, despite their simplicity, linear models outperformed more complex Random Forest models in our initial experiments. This unexpected finding suggests that the relationship between meteorological conditions and pollution levels may be more linear than previously assumed, at least within the range of conditions observed in our dataset. The success of linear models also provides practical advantages in terms of interpretability and computational efficiency.
-
-Third, our feature importance analysis revealed that temporal patterns, particularly monthly variations, were consistently among the strongest predictors of pollution levels. This finding highlights the significance of seasonal effects on air quality in Indian cities. Among meteorological variables, humidity emerged as a particularly important predictor, showing consistent negative correlations with multiple pollutants across different cities.
+Second, our feature importance analysis revealed that temporal patterns, particularly monthly variations, were consistently among the strongest predictors of pollution levels. This finding highlights the significance of seasonal effects on air quality in Indian cities. Naturally, the \textit{month\_of\_year} variable also captures a good part of the yearly climate trends. Among meteorological variables, humidity emerged as a particularly important predictor, showing consistent negative correlations with multiple pollutants across different cities.
 
 Several limitations of our study should be noted. The models' performance varied considerably across different pollutants and cities, with some combinations showing relatively weak predictive power. Additionally, our analysis was limited to a five-year period and five cities, which may not capture the full range of pollution patterns across India's diverse urban landscapes.
+
+Additionally, the linear regression models used in this study may not fully capture the complex non-linear relationships between air pollution and meteorological factors. More advanced modeling techniques, such as generalized additive models or machine learning algorithms, could potentially provide more accurate predictions by accounting for non-linear interactions and complex temporal patterns.
 
 Despite these limitations, our findings demonstrate that air pollution levels in Indian cities can be predicted with moderate accuracy using readily available meteorological and temporal data. The reliable prediction of PM\textsubscript{2.5} and PM\textsubscript{10} levels is particularly significant given their well-documented health impacts.
 
@@ -499,9 +499,8 @@ Despite these limitations, our findings demonstrate that air pollution levels in
 
 Our study suggests several promising directions for future research. First, while our linear models showed reasonable performance, exploring more sophisticated approaches such as generalized additive models (GAMs) could better capture non-linear relationships in the data. These models could be particularly valuable for pollutants like CO and SO\textsubscript{2} where our current approach showed limited predictive power.
 
-Second, the incorporation of additional predictors could significantly enhance model performance. Satellite data could provide insights into regional air masses and pollution transport, while traffic data and industrial activity metrics could help account for anthropogenic emission sources. Additionally, data about special events (such as festivals or policy changes) could improve predictions during unusual pollution episodes.
+Finally, the incorporation of additional predictors could enhance model performance. Satellite data could provide insights into regional air masses and pollution transport, while traffic data and industrial activity metrics could help account for anthropogenic emission sources. Additionally, data about special events (such as festivals or policy changes) could improve predictions during unusual pollution episodes.
 
-Finally, future work should focus on developing real-time prediction capabilities. This would involve creating automated data pipelines that integrate weather forecasts to provide advance warnings of potential high-pollution events. Such a system, combined with appropriate uncertainty quantification, could serve as a valuable tool for public health protection and urban air quality management.
 
 \newpage
 
@@ -549,49 +548,7 @@ Finally, future work should focus on developing real-time prediction capabilitie
 
 \newpage
 
-
-\section*{Appendix B: Random Forest Model Performance Metrics}
-\begin{table}[ht]
-  \centering
-  \begin{tabular}{rllrr}
-  \hline
-  & City & Response variable & R\textsuperscript{2} & RMSE \\
-  \hline
-  1 & Bengaluru & PM2.5 & 0.167 & 20.930 \\
-  2 & Bengaluru & PM10 & 0.224 & 33.716 \\
-  3 & Bengaluru & NOx & 0.015 & 25.354 \\
-  4 & Bengaluru & NH3 & 0.007 & 11.079 \\
-  5 & Bengaluru & CO & 0.001 & 0.907 \\
-  6 & Bengaluru & SO2 & 0.000 & 2.712 \\
-  7 & Bengaluru & O3 & 0.311 & 25.933 \\
-  8 & Delhi & PM2.5 & 0.366 & 76.161 \\
-  9 & Delhi & PM10 & 0.282 & 117.638 \\
-  10 & Delhi & NOx & 0.060 & 42.168 \\
-  11 & Delhi & NH3 & 0.206 & 12.727 \\
-  12 & Delhi & CO & 0.000 & 1.688 \\
-  13 & Delhi & SO2 & 0.026 & 7.559 \\
-  14 & Delhi & O3 & 0.107 & 29.042 \\
-  15 & Hyderabad & PM2.5 & 0.364 & 19.502 \\
-  16 & Hyderabad & PM10 & 0.541 & 34.500 \\
-  17 & Hyderabad & NOx & 0.089 & 12.403 \\
-  18 & Hyderabad & NH3 & 0.021 & 7.236 \\
-  19 & Hyderabad & CO & 0.002 & 0.644 \\
-  20 & Hyderabad & SO2 & 0.067 & 5.649 \\
-  21 & Hyderabad & O3 & 0.376 & 14.878 \\
-  22 & Jaipur & PM2.5 & 0.088 & 30.213 \\
-  23 & Jaipur & PM10 & 0.054 & 79.920 \\
-  24 & Jaipur & NOx & 0.052 & 26.645 \\
-  25 & Jaipur & NH3 & 0.021 & 20.445 \\
-  26 & Jaipur & CO & 0.001 & 0.670 \\
-  27 & Jaipur & SO2 & 0.008 & 6.241 \\
-  28 & Jaipur & O3 & 0.195 & 26.338 \\
-  \hline
-  \end{tabular}
-  \caption{Performance metrics for air quality predictions across different cities and pollutants}
-  \label{tab:air_quality_results}
-  \end{table}
-
-\section*{Appendix C: Feature Importance Heatmap}
+\section*{Appendix B: Feature Importance Heatmap}
 
 \begin{figure}[H]
   \centering
