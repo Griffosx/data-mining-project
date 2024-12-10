@@ -212,7 +212,13 @@ All this complexity suggests that different cities should be modeled separately,
 
 \subsection{Predictor Selection}
 
-Having completed our analysis of the pollutant response variables and their distributions, we turned our attention to examining the meteorological predictors in our dataset. Before applying feature selection, we conducted a correlation analysis of the meteorological data to understand the relationships between weather variables. The correlation matrix visualization (Figure~\ref{fig:correlation_matrix}) revealed several significant relationships between weather parameters. Some of the key findings were as follows:
+Having completed our analysis of the pollutant response variables and their distributions, we turned our attention to examining the meteorological predictors in our dataset. Our weather data comprises 25 distinct variables that collectively capture a comprehensive range of atmospheric conditions and celestial phenomena.
+
+The dataset includes several categories of measurements. The temporal information category encompasses timestamps and celestial events, including \textit{date\_time} for precise temporal tracking, along with daily solar cycles (\textit{sunrise}, \textit{sunset}) and lunar phenomena (\textit{moonrise}, \textit{moonset}, \textit{moon\_illumination}). For temperature characterization there are several metrics: the basic temperature readings (\textit{tempC}, \textit{maxtempC}, \textit{mintempC}), perceived temperature indicators (\textit{FeelsLikeC}, \textit{HeatIndexC}, \textit{WindChillC}), and the \textit{DewPointC} measurement that indicates atmospheric moisture saturation points.
+
+The atmospheric conditions are documented through several key parameters: \textit{humidity} measuring atmospheric moisture content, \textit{pressure} indicating atmospheric force per unit area, \textit{cloudcover} quantifying sky obstruction, precipitation measurements (\textit{precipMM}, \textit{totalSnow\_cm}), and \textit{visibility} recording atmospheric clarity. Wind conditions are characterized by three primary measurements: \textit{windspeedKmph} for current wind velocity, \textit{WindGustKmph} for peak wind speeds, and \textit{winddirDegree} indicating wind direction. Additionally, solar radiation intensity is captured through \textit{sunHour} measurements and \textit{uvIndex} readings, providing information about solar exposure levels.
+
+Before applying feature selection, we conducted a correlation analysis of the meteorological data to understand the relationships between weather variables. The correlation matrix visualization (Figure~\ref{fig:correlation_matrix}) revealed several significant relationships between weather parameters. Some of the key findings were as follows:
 
 \begin{figure}[H]
   \centering
@@ -314,7 +320,7 @@ Initially, the analysis incorporated a set of 7 response variables and 22 featur
   \item \textbf{Temporal Features}: \textit{day\_of\_week}, \textit{month\_of\_year}, \textit{hour\_cos}, \textit{hour\_sin}, \textit{hour\_cos\_12h}, \textit{hour\_sin\_12h}
 \end{itemize}
 
-During the modeling process, we performed VIF analysis to identify and remove any predictors that introduced multicollinearity issues. There were three features that consistently exhibited VIF > 4 across all models: \textit{minTempC}, \textit{maxTempC}, and \textit{DewPointC}. To address this, we removed these features from our dataset, ensuring that our models were not affected by multicollinearity.
+During the modeling process, we performed VIF analysis to identify and remove any predictors that introduced multicollinearity issues. There were three features that consistently exhibited VIF $>$ 4 across all models: \textit{minTempC}, \textit{maxTempC}, and \textit{DewPointC}. To address this, we removed these features from our dataset, ensuring that our models were not affected by multicollinearity.
 
 \subsection{Data Splitting and Filtering}
 
