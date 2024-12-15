@@ -8,6 +8,7 @@ input/
 *.fdb_latexmk
 *.fls
 *.log
+*.nav
 *.out
 *.run.xml
 *.synctex.gz

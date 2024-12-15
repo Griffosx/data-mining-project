@@ -1,4 +1,4 @@
-\documentclass[svgnames, 10pt]{beamer}
+\documentclass[svgnames, 12pt]{beamer}
 
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
@@ -30,29 +30,26 @@
 \titlepage
 \end{frame}
 
-\begin{frame}{Table of Contents}
-\tableofcontents
-\end{frame}
+% \begin{frame}{Table of Contents}
+% \tableofcontents
+% \end{frame}
 
 \section{Introduction}
 
 \begin{frame}{Project Overview}
     \begin{itemize}
-        \item Background:
+        \item Background
             \begin{itemize}
-                \item Air pollution ranks among the most pressing global health threats
-                \item India faces some of the highest pollution levels globally
+                \item Air pollution among the most pressing global health threats
+                \item Particularly severe in India
                 \item Driven by rapid urbanization and economic growth
             \end{itemize}
         \vspace{1em}
-        \item Study Objectives:
+        \item Study Objectives
             \begin{itemize}
-                \item Analyze pollution and weather data from five major Indian cities:
-                    \begin{itemize}
-                        \item Bengaluru, Delhi, Hyderabad, Jaipur, Mumbai
-                    \end{itemize}
-                \item Develop predictive models using multivariate linear regression
-                \item Focus on understanding key meteorological and temporal predictors
+                \item Analyze pollution and weather data from five major Indian cities
+                \item Develop predictive models for main air pollutants
+                \item Uncover key meteorological and temporal predictors
             \end{itemize}
     \end{itemize}
     \vfill
@@ -61,23 +58,14 @@
 
 \begin{frame}{Literature Review}
     \begin{itemize}
-        \item Extensive research available:
-            \begin{itemize}
-                \item Widespread interest among scientists and data analysts
-                \item Numerous studies on air pollution
-                \item Many also are focused on India due to severe air quality issues
-            \end{itemize}
-        \item Research gap:
+        \item Numerous studies on air pollution, including in India
+        \item Research gap
             \begin{itemize}
                 \item No existing studies examining these five specific cities together
                 \item Unique combination of air quality and weather datasets
+                \item Most studies focus on time series models
             \end{itemize}
-        \item Most existing approaches:
-            \begin{itemize}
-                \item Deep learning / neural network models
-                \item Complex machine learning algorithms
-            \end{itemize}
-        \item Our approach:
+        \item Our approach
             \begin{itemize}
                 \item Focus on interpretable linear regression
                 \item Emphasis on feature engineering
@@ -90,24 +78,25 @@
 
 \begin{frame}{Data Sources}
     \begin{itemize}
-       \item Air Quality Data in India (2015-2020):
+       \item Air Quality Data in India (2015-2020)
            \begin{itemize}
                \item Hourly pollution measurements
-               \item Coverage: 27 major Indian cities
-               \item Over 700,000 records
+               \item 27 major Indian cities
+               \item Seven pollutants: PM\textsubscript{2.5}, PM\textsubscript{10}, NO\textsubscript{2}, SO\textsubscript{2}, CO, O\textsubscript{3}, NH\textsubscript{3}
            \end{itemize}
        \vspace{0.5em}
-       \item Historical Weather Data (2006-2019):
+       \item Historical Weather Data (2006-2019)
            \begin{itemize}
-               \item Over 20 meteorological variables
-               \item Coverage: 8 Indian cities
-               \item Over 700,000 records
+               \item Hourly weather observations
+               \item 8 major Indian cities
+               \item >20 meteorological variables
            \end{itemize}
        \vspace{0.5em}
-       \item Combined Dataset:
+       \item Combined Dataset
            \begin{itemize}
+               \item Intersection of air quality and weather data
                \item Time period: January 2015 to December 2019
-               \item Five cities with complete data coverage:
+               \item 5 cities
                    \begin{itemize}
                        \item Bengaluru, Delhi, Hyderabad, Jaipur, Mumbai
                    \end{itemize}
@@ -118,51 +107,48 @@
 
 \begin{frame}{Raw Outcome Variable Distribution}
     \begin{itemize}
-        \item Initial analysis revealed strongly right-skewed distributions:
+        \item Right-skewed distributions
             \begin{itemize}
-                \item High frequency of lower values
-                \item Long tail extending toward higher concentrations
+                \item High frequency of lower values with a long tail of higher values
                 \item Pattern consistent across all pollutants and cities
             \end{itemize}
     \end{itemize}
     \vspace{1em}
     \begin{center}
-        \includegraphics[width=0.9\textwidth]{assets/skewness.png}
+        \includegraphics[width=\textwidth]{assets/skewness.png}
     \end{center}
     \vfill
 \end{frame}
 
 \begin{frame}{After Log Transformation}
     \begin{itemize}
-        \item Applied logarithmic transformation to address skewness:
+        \item Applied $\log(1 + x)$ transformation to all outcome variables
             \begin{itemize}
-                \item Added constant of 1 to handle zero values
                 \item Resulted in more normal-like distributions
-                \item Data better suited for linear regression
-                \item Transformation applied consistently across all pollutants
             \end{itemize}
     \end{itemize}
     \vspace{1em}
     \begin{center}
-        \includegraphics[width=0.9\textwidth]{assets/log-scaled-pollutants.png}
+        \includegraphics[width=\textwidth]{assets/log-scaled-pollutants.png}
     \end{center}
     \vfill
 \end{frame}
 
 \begin{frame}{Feature Engineering}
 \begin{itemize}
-    \item Temporal Features:
+    \item Temporal Features
         \begin{itemize}
-            \item Hour of day (cyclic encoding)
-            \item Day of week
-            \item Month of year
+            \item Hour of the day
+                \begin{itemize}
+                    \item Cosine/Sine features to capture cyclic (12 and 24-hour) patterns
+                \end{itemize}
+            \item Day of the week (categorical)
+            \item Month of the year (categorical)
         \end{itemize}
-    \item Weather-Related Features:
+    \item Weather-Related Features
         \begin{itemize}
             \item Wind components (X and Y axes)
-            \item 24-hour cumulative precipitation
-            \item 24-hour cumulative wind speed
-            \item Normalized sunrise times
+            \item 24-hour cumulative precipitation and wind speed
         \end{itemize}
     \item All continuous features were scaled
 \end{itemize}
@@ -171,29 +157,25 @@
 \begin{frame}{Preliminary Analysis}
     \vspace{0.5em}
     \begin{center}
-        \includegraphics[width=0.85\textwidth]{assets/feature-correlation-matrix-final.png}
+        \includegraphics[width=0.84\textwidth]{assets/feature-correlation-matrix-final.png}
     \end{center}
     \vfill
 \end{frame}
 
 \begin{frame}{Preliminary Analysis}
     \begin{itemize}
-       \item Correlation between pollutants:
+       \item Weather correlations
+           \begin{itemize}
+               \item Humidity: negative with most pollutants
+               \item Wind speed: negative with most pollutants, aids pollutant dispersion
+               \item Temperature: positive with O\textsubscript{3}
+               \item UV index: positive with O\textsubscript{3}
+           \end{itemize}
+       \item Significantly higher pollution in autumn and winter
+       \item Pollution correlations
            \begin{itemize}
                \item Most pollutants positively correlated with each other
                \item O\textsubscript{3} shows distinct pattern from other pollutants
-           \end{itemize}
-       \item Weather correlations:
-           \begin{itemize}
-               \item Humidity: negative correlation with most pollutants
-               \item Wind speed: negative correlation, aids pollutant dispersion
-               \item Temperature: positive correlation with O\textsubscript{3}
-               \item UV index: positive correlation with O\textsubscript{3}
-           \end{itemize}
-       \item Temporal patterns:
-           \begin{itemize}
-               \item Strong seasonal trends observed
-               \item Higher pollution in autumn and winter
            \end{itemize}
     \end{itemize}
 \end{frame}
@@ -202,17 +184,17 @@
 
 \begin{frame}{Model Development}
 \begin{itemize}
-    \item Independent linear regression models for each:
+    \item Independent linear regression models for each
         \begin{itemize}
             \item City
             \item Response variable
         \end{itemize}
-    \item Data splitting:
+    \item Data splitting
         \begin{itemize}
             \item Training: 2015-2018
             \item Testing: 2019
         \end{itemize}
-    \item Removed features with VIF > 4:
+    \item Removed features with VIF > 4
         \begin{itemize}
             \item minTempC
             \item maxTempC
@@ -221,16 +203,17 @@
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Model Performance by Pollutant}
+\begin{frame}{Model Performance (Mean per City/Pollutant)}
+    \fontsize{11}{13}\selectfont
     \begin{table}
     \centering
     \begin{tabular}{lrrr}
     \hline
     Response & r & R\textsuperscript{2} & RMSE \\
     \hline
-    PM2.5 & 0.728 & 0.538 & 0.437 \\
-    PM10 & 0.694 & 0.492 & 0.435 \\
-    O3 & 0.660 & 0.443 & 0.576 \\
+    PM2.5 & 0.728 & \textbf{0.538} & 0.437 \\
+    PM10 & 0.694 & \textbf{0.492} & 0.435 \\
+    O3 & 0.660 & \textbf{0.443} & 0.576 \\
     NOx & 0.430 & 0.214 & 0.604 \\
     NH3 & 0.338 & 0.161 & 0.420 \\
     CO & 0.311 & 0.132 & 0.307 \\
@@ -238,17 +221,17 @@
     \hline
     \end{tabular}
     \end{table}
-    \end{frame}
+    % \end{frame}
     
-    \begin{frame}{Model Performance by City}
+    % \begin{frame}{Model Performance by City}
     \begin{table}
     \centering
     \begin{tabular}{lrrr}
     \hline
     City & r & R\textsuperscript{2} & RMSE \\
     \hline
-    Delhi & 0.615 & 0.403 & 0.412 \\
-    Hyderabad & 0.598 & 0.390 & 0.390 \\
+    Delhi & 0.615 & \textbf{0.403} & 0.412 \\
+    Hyderabad & 0.598 & \textbf{0.390} & 0.390 \\
     Bengaluru & 0.427 & 0.246 & 0.481 \\
     Jaipur & 0.411 & 0.198 & 0.472 \\
     Mumbai* & 0.061 & 0.007 & 0.649 \\
@@ -260,39 +243,38 @@
     \end{center}
 \end{frame}
 
-\begin{frame}{Key Findings}
-\begin{itemize}
-    \item Best predictions for:
-        \begin{itemize}
-            \item PM\textsubscript{2.5} (R\textsuperscript{2} = 0.538)
-            \item PM\textsubscript{10} (R\textsuperscript{2} = 0.492)
-            \item O\textsubscript{3} (R\textsuperscript{2} = 0.443)
-        \end{itemize}
-    \item Best performing cities:
-        \begin{itemize}
-            \item Delhi (R\textsuperscript{2} = 0.403)
-            \item Hyderabad (R\textsuperscript{2} = 0.390)
-        \end{itemize}
-    \item Key predictors:
-        \begin{itemize}
-            \item Month of the year (seasonal patterns)
-            \item Humidity (negative correlation)
-            \item Temperature (positive correlation)
-            \item $\cos(hour\ of\ day)$ (cyclic pattern)
-            \item Cumulative precipitation over 24 hours
-        \end{itemize}
-\end{itemize}
-\end{frame}
+% \begin{frame}{Key Findings}
+% \begin{itemize}
+%     \item Best predictions for
+%         \begin{itemize}
+%             \item PM\textsubscript{2.5} (R\textsuperscript{2} = 0.538)
+%             \item PM\textsubscript{10} (R\textsuperscript{2} = 0.492)
+%             \item O\textsubscript{3} (R\textsuperscript{2} = 0.443)
+%         \end{itemize}
+%     \item Best performing cities
+%         \begin{itemize}
+%             \item Delhi (R\textsuperscript{2} = 0.403)
+%             \item Hyderabad (R\textsuperscript{2} = 0.390)
+%         \end{itemize}
+% \end{itemize}
+% \end{frame}
 
 \section{Conclusion}
 
 \begin{frame}{Conclusions}
 \begin{itemize}
     \item Models show moderate predictive power
-    \item Performance varies significantly across:
         \begin{itemize}
-            \item Pollutants
-            \item Cities
+            \item R\textsuperscript{2} between 0.012 and 0.670, mean = 0.289
+            \item Varies significantly across pollutants and cities
+        \end{itemize}
+    \item Key predictors
+        \begin{itemize}
+            \item Month of the year
+            \item Humidity (negative link)
+            \item Temperature (positive link)
+            \item $\cos(hour\ of\ day)$
+            \item Precipitation over 24 hours
         \end{itemize}
     \item Temporal patterns are strong predictors
     \item Meteorological variables show consistent influence
@@ -301,12 +283,12 @@
 
 \begin{frame}{Room for Improvement}
 \begin{itemize}
-    \item Explore more sophisticated approaches:
+    \item Explore more sophisticated approaches
         \begin{itemize}
-            \item Generalized Additive Models (GAMs)
-            \item Using time series models (e.g. LSTM)
+            \item Non-linear models
+            \item Time series models (e.g. LSTM)
         \end{itemize}
-    \item Additional predictors:
+    \item Additional predictors
         \begin{itemize}
             \item Satellite data
             \item Traffic information
