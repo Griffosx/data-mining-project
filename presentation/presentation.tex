@@ -36,77 +36,147 @@
 
 \section{Introduction}
 
-\begin{frame}{Background}
+\begin{frame}{Project Overview}
     \begin{itemize}
-        \item Air pollution ranks among the most pressing global health threats
-        \item India faces particularly severe challenges:
+        \item Background:
             \begin{itemize}
-                \item One of the highest pollution levels globally
-                \item Rapid urbanization
-                \item Rapid economic growth
+                \item Air pollution ranks among the most pressing global health threats
+                \item India faces some of the highest pollution levels globally
+                \item Driven by rapid urbanization and economic growth
+            \end{itemize}
+        \vspace{1em}
+        \item Study Objectives:
+            \begin{itemize}
+                \item Analyze pollution and weather data from five major Indian cities:
+                    \begin{itemize}
+                        \item Bengaluru, Delhi, Hyderabad, Jaipur, Mumbai
+                    \end{itemize}
+                \item Develop predictive models using multivariate linear regression
+                \item Focus on understanding key meteorological and temporal predictors
             \end{itemize}
     \end{itemize}
-    \end{frame}
+    \vfill
+ \end{frame}
 
-\begin{frame}{Study Objectives}
-\begin{itemize}
-    \item Analyze pollution and weather data from five major Indian cities:
-        \begin{itemize}
-            \item Bengaluru (Bangalore)
-            \item Delhi
-            \item Hyderabad
-            \item Jaipur
-            \item Mumbai
-        \end{itemize}
-    \item Develop predictive model for air pollution levels using multivariate regression approach
-\end{itemize}
+
+\begin{frame}{Literature Review}
+    \begin{itemize}
+        \item Extensive research available:
+            \begin{itemize}
+                \item Widespread interest among scientists and data analysts
+                \item Numerous studies on air pollution
+                \item Many also are focused on India due to severe air quality issues
+            \end{itemize}
+        \item Research gap:
+            \begin{itemize}
+                \item No existing studies examining these five specific cities together
+                \item Unique combination of air quality and weather datasets
+            \end{itemize}
+        \item Most existing approaches:
+            \begin{itemize}
+                \item Deep learning / neural network models
+                \item Complex machine learning algorithms
+            \end{itemize}
+        \item Our approach:
+            \begin{itemize}
+                \item Focus on interpretable linear regression
+                \item Emphasis on feature engineering
+                \item Independent models for each city and pollutant
+            \end{itemize}
+    \end{itemize}
 \end{frame}
 
 \section{Data Analysis}
 
 \begin{frame}{Data Sources}
-\begin{itemize}
-    \item Two primary datasets:
-        \begin{itemize}
-            \item Air Quality Data in India (2015-2020)
-                \begin{itemize}
-                    \item Hourly measurements
-                    \item 27 major Indian cities
-                    \item Over 700,000 records
-                \end{itemize}
-            \item Historical Weather Data (2006-2019)
-                \begin{itemize}
-                    \item 8 Indian cities
-                    \item Over 20 weather variables
-                    \item Over 700,000 records
-                \end{itemize}
-        \end{itemize}
-    \item Focus period: January 2015 to January 2019
-\end{itemize}
+    \begin{itemize}
+       \item Air Quality Data in India (2015-2020):
+           \begin{itemize}
+               \item Hourly pollution measurements
+               \item Coverage: 27 major Indian cities
+               \item Over 700,000 records
+           \end{itemize}
+       \vspace{0.5em}
+       \item Historical Weather Data (2006-2019):
+           \begin{itemize}
+               \item Over 20 meteorological variables
+               \item Coverage: 8 Indian cities
+               \item Over 700,000 records
+           \end{itemize}
+       \vspace{0.5em}
+       \item Combined Dataset:
+           \begin{itemize}
+               \item Time period: January 2015 to December 2019
+               \item Five cities with complete data coverage:
+                   \begin{itemize}
+                       \item Bengaluru, Delhi, Hyderabad, Jaipur, Mumbai
+                   \end{itemize}
+           \end{itemize}
+    \end{itemize}
+    \vfill
 \end{frame}
 
-\begin{frame}{Response Variables}
-\begin{itemize}
-    \item Seven key pollutants selected:
-        \begin{itemize}
-            \item PM\textsubscript{2.5}
-            \item PM\textsubscript{10}
-            \item NOx
-            \item NH\textsubscript{3}
-            \item CO
-            \item SO\textsubscript{2}
-            \item O\textsubscript{3}
-        \end{itemize}
-    \item Missing data percentages:
-        \begin{itemize}
-            \item CO: 4\%
-            \item NOx: 9\%
-            \item SO\textsubscript{2}: 19\%
-            \item PM\textsubscript{2.5} and O\textsubscript{3}: ~20\%
-            \item PM\textsubscript{10}: 26\%
-            \item NH\textsubscript{3}: 30\%
-        \end{itemize}
-\end{itemize}
+\begin{frame}{Preliminary Analysis}
+    \begin{itemize}
+       \item Correlation between pollutants:
+           \begin{itemize}
+               \item Most pollutants positively correlated with each other
+               \item O\textsubscript{3} shows distinct pattern from other pollutants
+           \end{itemize}
+       \item Weather correlations:
+           \begin{itemize}
+               \item Humidity: negative correlation with most pollutants
+               \item Wind speed: negative correlation, aids pollutant dispersion
+               \item Temperature: positive correlation with O\textsubscript{3}
+               \item UV index: positive correlation with O\textsubscript{3}
+           \end{itemize}
+       \item Temporal patterns:
+           \begin{itemize}
+               \item Strong seasonal trends observed
+               \item Higher pollution in autumn and winter
+           \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Preliminary Analysis}
+    \vspace{0.5em}
+    \begin{center}
+        \includegraphics[width=0.8\textwidth]{assets/feature-correlation-matrix-final.png}
+    \end{center}
+    \vfill
+\end{frame}
+
+\begin{frame}{Original Data Distribution}
+    \begin{itemize}
+        \item Initial analysis revealed strongly right-skewed distributions:
+            \begin{itemize}
+                \item High frequency of lower values
+                \item Long tail extending toward higher concentrations
+                \item Pattern consistent across all pollutants and cities
+            \end{itemize}
+    \end{itemize}
+    \vspace{1em}
+    \begin{center}
+        \includegraphics[width=0.7\textwidth]{assets/skewness.png}
+    \end{center}
+    \vfill
+\end{frame}
+
+\begin{frame}{After Log Transformation}
+    \begin{itemize}
+        \item Applied logarithmic transformation to address skewness:
+            \begin{itemize}
+                \item Added constant of 1 to handle zero values
+                \item Resulted in more normal-like distributions
+                \item Data better suited for linear regression
+                \item Transformation applied consistently across all pollutants
+            \end{itemize}
+    \end{itemize}
+    \vspace{1em}
+    \begin{center}
+        \includegraphics[width=0.7\textwidth]{assets/log-scaled-pollutants.png}
+    \end{center}
+    \vfill
 \end{frame}
 
 \begin{frame}{Feature Engineering}

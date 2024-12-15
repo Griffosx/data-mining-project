@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.5.4)  15 DEC 2024 15:38
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.5.4)  15 DEC 2024 16:11
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -947,7 +947,7 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 [2
 
 ]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 49--49
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 59--59
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
@@ -959,7 +959,7 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 [3
 
 ]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 63--63
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 87--87
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
@@ -971,7 +971,7 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 [4
 
 ]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 86--86
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 117--117
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
@@ -983,46 +983,46 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 [5
 
 ]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 110--110
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 139--139
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
-LaTeX Font Info:    Trying to load font information for OT1+lmss on input line 110.
+LaTeX Font Info:    Trying to load font information for OT1+lmss on input line 139.
 (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/ot1lmss.fd
 File: ot1lmss.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OML+lmm on input line 110.
+LaTeX Font Info:    Trying to load font information for OML+lmm on input line 139.
  (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 110.
+LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 139.
  (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
-LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 110.
+LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 139.
  (/usr/local/texlive/2024/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <9> on input line 110.
+(Font)              <9> on input line 139.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 110.
+(Font)              <6> on input line 139.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 110.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 110.
+(Font)              <5> on input line 139.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 139.
  (/usr/local/texlive/2024/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 110.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 139.
  (/usr/local/texlive/2024/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 LaTeX Font Info:    Font shape `L7x/lmss/m/it' in size <9> not available
-(Font)              Font shape `L7x/lmss/m/sl' tried instead on input line 110.
+(Font)              Font shape `L7x/lmss/m/sl' tried instead on input line 139.
 LaTeX Font Info:    Font shape `L7x/lmss/m/it' in size <6> not available
-(Font)              Font shape `L7x/lmss/m/sl' tried instead on input line 110.
+(Font)              Font shape `L7x/lmss/m/sl' tried instead on input line 139.
 LaTeX Font Info:    Font shape `L7x/lmss/m/it' in size <5> not available
-(Font)              Font shape `L7x/lmss/m/sl' tried instead on input line 110.
+(Font)              Font shape `L7x/lmss/m/sl' tried instead on input line 139.
 
 Overfull \hbox (44.30304pt too wide) has occurred while \output is active
  [][]  \L7x/lmss/m/n/5 ([])  
@@ -1031,8 +1031,17 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 [6
 
 ]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 129--129
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 147--147
  [][]  \L7x/lmss/m/n/5 ([])  
+ []
+
+<assets/feature-correlation-matrix-final.png, id=226, 722.7pt x 578.16pt>
+File: assets/feature-correlation-matrix-final.png Graphic file (type png)
+<use assets/feature-correlation-matrix-final.png>
+Package pdftex.def Info: assets/feature-correlation-matrix-final.png  used on input line 147.
+(pdftex.def)             Requested size: 275.35733pt x 220.28532pt.
+
+Overfull \vbox (2.5327pt too high) detected at line 147
  []
 
 
@@ -1042,11 +1051,16 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 
 [7
 
-]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 153--153
+ <./assets/feature-correlation-matrix-final.png>]
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 163--163
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
+<assets/skewness.png, id=258, 867.24pt x 361.35pt>
+File: assets/skewness.png Graphic file (type png)
+<use assets/skewness.png>
+Package pdftex.def Info: assets/skewness.png  used on input line 163.
+(pdftex.def)             Requested size: 240.9357pt x 100.38884pt.
 
 Overfull \hbox (44.30304pt too wide) has occurred while \output is active
  [][]  \L7x/lmss/m/n/5 ([])  
@@ -1054,19 +1068,16 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 
 [8
 
-]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 172--172
+ <./assets/skewness.png (PNG copy)>]
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 180--180
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 172.
-LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 172.
-LaTeX Font Info:    Font shape `L7x/lmss/m/it' in size <10> not available
-(Font)              Font shape `L7x/lmss/m/sl' tried instead on input line 172.
-LaTeX Font Info:    Font shape `L7x/lmss/m/it' in size <7> not available
-(Font)              Font shape `L7x/lmss/m/sl' tried instead on input line 172.
+<assets/log-scaled-pollutants.png, id=286, 867.24pt x 361.35pt>
+File: assets/log-scaled-pollutants.png Graphic file (type png)
+<use assets/log-scaled-pollutants.png>
+Package pdftex.def Info: assets/log-scaled-pollutants.png  used on input line 180.
+(pdftex.def)             Requested size: 240.9357pt x 100.38884pt.
 
 Overfull \hbox (44.30304pt too wide) has occurred while \output is active
  [][]  \L7x/lmss/m/n/5 ([])  
@@ -1074,8 +1085,8 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 
 [9
 
-]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 189--189
+ <./assets/log-scaled-pollutants.png (PNG copy)>]
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 199--199
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
@@ -1087,7 +1098,7 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 [10
 
 ]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 211--211
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 223--223
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
@@ -1099,10 +1110,18 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 [11
 
 ]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 227--227
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 242--242
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <10> on input line 242.
+LaTeX Font Info:    External font `lmex10' loaded for size
+(Font)              <7> on input line 242.
+LaTeX Font Info:    Font shape `L7x/lmss/m/it' in size <10> not available
+(Font)              Font shape `L7x/lmss/m/sl' tried instead on input line 242.
+LaTeX Font Info:    Font shape `L7x/lmss/m/it' in size <7> not available
+(Font)              Font shape `L7x/lmss/m/sl' tried instead on input line 242.
 
 Overfull \hbox (44.30304pt too wide) has occurred while \output is active
  [][]  \L7x/lmss/m/n/5 ([])  
@@ -1111,7 +1130,7 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 [12
 
 ]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 245--245
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 259--259
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
@@ -1123,7 +1142,7 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
 [13
 
 ]
-Overfull \hbox (44.30304pt too wide) in paragraph at lines 253--253
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 281--281
  [][]  \L7x/lmss/m/n/5 ([])  
  []
 
@@ -1133,6 +1152,42 @@ Overfull \hbox (44.30304pt too wide) has occurred while \output is active
  []
 
 [14
+
+]
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 297--297
+ [][]  \L7x/lmss/m/n/5 ([])  
+ []
+
+
+Overfull \hbox (44.30304pt too wide) has occurred while \output is active
+ [][]  \L7x/lmss/m/n/5 ([])  
+ []
+
+[15
+
+]
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 315--315
+ [][]  \L7x/lmss/m/n/5 ([])  
+ []
+
+
+Overfull \hbox (44.30304pt too wide) has occurred while \output is active
+ [][]  \L7x/lmss/m/n/5 ([])  
+ []
+
+[16
+
+]
+Overfull \hbox (44.30304pt too wide) in paragraph at lines 323--323
+ [][]  \L7x/lmss/m/n/5 ([])  
+ []
+
+
+Overfull \hbox (44.30304pt too wide) has occurred while \output is active
+ [][]  \L7x/lmss/m/n/5 ([])  
+ []
+
+[17
 
 ]
 \tf@nav=\write6
@@ -1157,18 +1212,18 @@ Package rerunfilecheck Info: File `presentation.out' has not changed.
 (rerunfilecheck)             Checksum: 7ADD2E922DBBE05120D924D7676A0521;405.
  ) 
 Here is how much of TeX's memory you used:
- 25027 strings out of 474116
- 483832 string characters out of 5743683
+ 25060 strings out of 474116
+ 484739 string characters out of 5743683
  1941187 words of memory out of 5000000
- 46822 multiletter control sequences out of 15000+600000
+ 46849 multiletter control sequences out of 15000+600000
  601306 words of font info for 78 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  128i,15n,123p,445b,683s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmss10.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmss12.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmss17.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmss8.pfb></usr/local/texlive/2024/texmf-dist/fonts/type1/public/lm/lmss9.pfb>
-Output written on presentation.pdf (14 pages, 140481 bytes).
+Output written on presentation.pdf (17 pages, 1068872 bytes).
 PDF statistics:
- 475 PDF objects out of 1000 (max. 8388607)
- 414 compressed objects within 5 object streams
- 33 named destinations out of 1000 (max. 500000)
- 129 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 564 PDF objects out of 1000 (max. 8388607)
+ 493 compressed objects within 5 object streams
+ 39 named destinations out of 1000 (max. 500000)
+ 144 words of extra memory for PDF output out of 10000 (max. 10000000)
 

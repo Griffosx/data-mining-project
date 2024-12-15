@@ -1,6 +1,6 @@
 # Fdb version 4
-["pdflatex"] 1734269913.07417 "/Users/griffosx/Projects/data-mining-project/presentation/presentation.tex" "presentation.pdf" "presentation" 1734269914.4737 0
-  "/Users/griffosx/Projects/data-mining-project/presentation/presentation.tex" 1734269912.83047 7245 338e0a0122935ecd52de49183ea7bcc7 ""
+["pdflatex"] 1734271865.86808 "/Users/griffosx/Projects/data-mining-project/presentation/presentation.tex" "presentation.pdf" "presentation" 1734271868.03826 0
+  "/Users/griffosx/Projects/data-mining-project/presentation/presentation.tex" 1734271865.6383 10287 c977c20613c497ab99b15966570d0a74 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/enc/dvips/lm/lm-l7x.enc" 1202520719 2453 bb81ad1022abaae98c0ce77fb1604366 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2024/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1246382020 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -225,11 +225,14 @@
   "/usr/local/texlive/2024/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1714822747.91415 5467645 128b85b7cde5f5edc5cb7f1dd7ff8736 ""
   "/usr/local/texlive/2024/texmf-var/web2c/pdftex/pdflatex.fmt" 1714822689 8221443 ad7b59726c194f32324ab0721bde2046 ""
   "/usr/local/texlive/2024/texmf.cnf" 1710266656 577 e590dabc9e28c5b61546e15f63eebcdf ""
-  "presentation.aux" 1734269914.36874 3417 6bb74094d5b7e816988d52b27c101310 "pdflatex"
-  "presentation.nav" 1734269914.36967 2101 a76e97b75d15462de5757daac049aef4 "pdflatex"
-  "presentation.out" 1734269914.36949 405 7add2e922dbbe05120d924d7676a0521 "pdflatex"
-  "presentation.tex" 1734269912.83047 7245 338e0a0122935ecd52de49183ea7bcc7 ""
-  "presentation.toc" 1734269914.3697 221 e080e9d071b96a358f1ae51b973cad99 "pdflatex"
+  "assets/feature-correlation-matrix-final.png" 1734270878.273 854830 89ce8434486cc3245be8721edb8d7734 ""
+  "assets/log-scaled-pollutants.png" 1734270878.28282 112666 321dffda04fef7e27889aa00238ea012 ""
+  "assets/skewness.png" 1734270878.28787 106685 8998dcde6e6350e24a295fdc1f43d440 ""
+  "presentation.aux" 1734271867.94495 3807 22434a0d5ab6fe53326c4f48744865c7 "pdflatex"
+  "presentation.nav" 1734271867.94591 2382 6fd407fd1b1f7e6014f66392bff32f48 "pdflatex"
+  "presentation.out" 1734271867.94571 405 7add2e922dbbe05120d924d7676a0521 "pdflatex"
+  "presentation.tex" 1734271865.6383 10287 c977c20613c497ab99b15966570d0a74 ""
+  "presentation.toc" 1734271867.94594 222 c1485734e1d4151c89e526f4858f3bcd "pdflatex"
   (generated)
   "presentation.aux"
   "presentation.log"
