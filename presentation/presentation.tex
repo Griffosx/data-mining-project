@@ -1,0 +1,255 @@
+\documentclass[svgnames, 10pt]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[L7x]{fontenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{lmodern}
+\usepackage{xcolor}
+\usepackage{subfig}
+
+\definecolor{mifcolor}{RGB}{0, 71, 127}
+\definecolor{dimgr}{RGB}{105, 105, 105}
+\definecolor{sky}{RGB}{0, 191, 255}
+\setbeamercolor{alerted text}{fg=red,bg=sky}
+
+\mode<presentation>{
+\usetheme{Madrid}
+\usecolortheme[named=mifcolor]{structure}
+}
+
+\title[Air Pollution in India]{Predicting Air Pollution Levels in Five Major Indian Cities}
+\author{Aleksandr Jan Smoliakov \and Danial Yntykbay \and Davide Giuseppe Griffon}
+\institute[VU]{Data Science Study Programme\\Faculty of Mathematics and Informatics}
+\date{2024}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Table of Contents}
+\tableofcontents
+\end{frame}
+
+\section{Introduction}
+
+\begin{frame}{Background}
+    \begin{itemize}
+        \item Air pollution ranks among the most pressing global health threats
+        \item India faces particularly severe challenges:
+            \begin{itemize}
+                \item One of the highest pollution levels globally
+                \item Rapid urbanization
+                \item Rapid economic growth
+            \end{itemize}
+    \end{itemize}
+    \end{frame}
+
+\begin{frame}{Study Objectives}
+\begin{itemize}
+    \item Analyze pollution and weather data from five major Indian cities:
+        \begin{itemize}
+            \item Bengaluru (Bangalore)
+            \item Delhi
+            \item Hyderabad
+            \item Jaipur
+            \item Mumbai
+        \end{itemize}
+    \item Develop predictive model for air pollution levels using multivariate regression approach
+\end{itemize}
+\end{frame}
+
+\section{Data Analysis}
+
+\begin{frame}{Data Sources}
+\begin{itemize}
+    \item Two primary datasets:
+        \begin{itemize}
+            \item Air Quality Data in India (2015-2020)
+                \begin{itemize}
+                    \item Hourly measurements
+                    \item 27 major Indian cities
+                    \item Over 700,000 records
+                \end{itemize}
+            \item Historical Weather Data (2006-2019)
+                \begin{itemize}
+                    \item 8 Indian cities
+                    \item Over 20 weather variables
+                    \item Over 700,000 records
+                \end{itemize}
+        \end{itemize}
+    \item Focus period: January 2015 to January 2019
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Response Variables}
+\begin{itemize}
+    \item Seven key pollutants selected:
+        \begin{itemize}
+            \item PM\textsubscript{2.5}
+            \item PM\textsubscript{10}
+            \item NOx
+            \item NH\textsubscript{3}
+            \item CO
+            \item SO\textsubscript{2}
+            \item O\textsubscript{3}
+        \end{itemize}
+    \item Missing data percentages:
+        \begin{itemize}
+            \item CO: 4\%
+            \item NOx: 9\%
+            \item SO\textsubscript{2}: 19\%
+            \item PM\textsubscript{2.5} and O\textsubscript{3}: ~20\%
+            \item PM\textsubscript{10}: 26\%
+            \item NH\textsubscript{3}: 30\%
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Feature Engineering}
+\begin{itemize}
+    \item Temporal Features:
+        \begin{itemize}
+            \item Hour of day (cyclic encoding)
+            \item Day of week
+            \item Month of year
+        \end{itemize}
+    \item Weather-Related Features:
+        \begin{itemize}
+            \item Wind components (X and Y axes)
+            \item 24-hour cumulative precipitation
+            \item 24-hour cumulative wind speed
+            \item Normalized sunrise times
+        \end{itemize}
+    \item All continuous features were scaled
+\end{itemize}
+\end{frame}
+
+\section{Methodology}
+
+\begin{frame}{Model Development}
+\begin{itemize}
+    \item Independent linear regression models for each:
+        \begin{itemize}
+            \item City
+            \item Response variable
+        \end{itemize}
+    \item Data splitting:
+        \begin{itemize}
+            \item Training: 2015-2018
+            \item Testing: 2019
+        \end{itemize}
+    \item Feature selection using VIF analysis
+    \item Removed features with VIF > 4:
+        \begin{itemize}
+            \item minTempC
+            \item maxTempC
+            \item DewPointC
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Model Performance by Pollutant}
+    \begin{table}
+    \centering
+    \begin{tabular}{lrrr}
+    \hline
+    Response & r & R\textsuperscript{2} & RMSE \\
+    \hline
+    PM2.5 & 0.728 & 0.538 & 0.437 \\
+    PM10 & 0.694 & 0.492 & 0.435 \\
+    O3 & 0.660 & 0.443 & 0.576 \\
+    NOx & 0.430 & 0.214 & 0.604 \\
+    NH3 & 0.338 & 0.161 & 0.420 \\
+    CO & 0.311 & 0.132 & 0.307 \\
+    SO2 & 0.273 & 0.102 & 0.388 \\
+    \hline
+    \end{tabular}
+    \end{table}
+    \end{frame}
+    
+    \begin{frame}{Model Performance by City}
+    \begin{table}
+    \centering
+    \begin{tabular}{lrrr}
+    \hline
+    City & r & R\textsuperscript{2} & RMSE \\
+    \hline
+    Delhi & 0.615 & 0.403 & 0.412 \\
+    Hyderabad & 0.598 & 0.390 & 0.390 \\
+    Bengaluru & 0.427 & 0.246 & 0.481 \\
+    Jaipur & 0.411 & 0.198 & 0.472 \\
+    Mumbai & 0.061 & 0.007 & 0.649 \\
+    \hline
+    \end{tabular}
+    \end{table}
+\end{frame}
+
+\begin{frame}{Key Findings}
+\begin{itemize}
+    \item Best predictions for:
+        \begin{itemize}
+            \item PM\textsubscript{2.5} (R\textsuperscript{2} = 0.538)
+            \item PM\textsubscript{10} (R\textsuperscript{2} = 0.492)
+            \item O\textsubscript{3} (R\textsuperscript{2} = 0.443)
+        \end{itemize}
+    \item Best performing cities:
+        \begin{itemize}
+            \item Delhi (R\textsuperscript{2} = 0.403)
+            \item Hyderabad (R\textsuperscript{2} = 0.390)
+        \end{itemize}
+    \item Key predictors:
+        \begin{itemize}
+            \item Month of year (seasonal patterns)
+            \item Humidity (negative correlation)
+            \item Wind speed and UV index
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\section{Conclusion}
+
+\begin{frame}{Conclusions}
+\begin{itemize}
+    \item Models show moderate predictive power
+    \item Performance varies significantly across:
+        \begin{itemize}
+            \item Pollutants
+            \item Cities
+        \end{itemize}
+    \item Temporal patterns are strong predictors
+    \item Meteorological variables show consistent influence
+    \item Linear models capture main relationships
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Future Work}
+\begin{itemize}
+    \item Explore more sophisticated approaches:
+        \begin{itemize}
+            \item Generalized Additive Models (GAMs)
+            \item Machine learning techniques
+        \end{itemize}
+    \item Additional predictors:
+        \begin{itemize}
+            \item Satellite data
+            \item Traffic information
+            \item Industrial activity metrics
+            \item Special events data
+        \end{itemize}
+    \item Extend to more cities and longer time periods
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\begin{center}
+\LARGE
+\color{mifcolor} Thank you for your attention
+\end{center}
+\end{frame}
+
+\end{document}
