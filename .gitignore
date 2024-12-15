@@ -2,13 +2,13 @@
 
 input/
 
-report.aux
-report.bbl
-report.bcf
-report.fdb_latexmk
-report.fls
-report.log
-report.out
-report.run.xml
-report.synctex.gz
-report.toc
+*.aux
+*.bbl
+*.bcf
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.toc

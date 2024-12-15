@@ -20,9 +20,9 @@
 }
 
 \title[Air Pollution in India]{Predicting Air Pollution Levels in Five Major Indian Cities}
-\author{Aleksandr Jan Smoliakov \and Danial Yntykbay \and Davide Giuseppe Griffon}
+\author{A. J. Smoliakov \and D. Yntykbay \and D. G. Griffon}
 \institute[VU]{Data Science Study Programme\\Faculty of Mathematics and Informatics}
-\date{2024}
+\date{2024--12--16}
 
 \begin{document}
 
@@ -116,37 +116,7 @@
     \vfill
 \end{frame}
 
-\begin{frame}{Preliminary Analysis}
-    \begin{itemize}
-       \item Correlation between pollutants:
-           \begin{itemize}
-               \item Most pollutants positively correlated with each other
-               \item O\textsubscript{3} shows distinct pattern from other pollutants
-           \end{itemize}
-       \item Weather correlations:
-           \begin{itemize}
-               \item Humidity: negative correlation with most pollutants
-               \item Wind speed: negative correlation, aids pollutant dispersion
-               \item Temperature: positive correlation with O\textsubscript{3}
-               \item UV index: positive correlation with O\textsubscript{3}
-           \end{itemize}
-       \item Temporal patterns:
-           \begin{itemize}
-               \item Strong seasonal trends observed
-               \item Higher pollution in autumn and winter
-           \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}{Preliminary Analysis}
-    \vspace{0.5em}
-    \begin{center}
-        \includegraphics[width=0.8\textwidth]{assets/feature-correlation-matrix-final.png}
-    \end{center}
-    \vfill
-\end{frame}
-
-\begin{frame}{Original Data Distribution}
+\begin{frame}{Raw Outcome Variable Distribution}
     \begin{itemize}
         \item Initial analysis revealed strongly right-skewed distributions:
             \begin{itemize}
@@ -157,7 +127,7 @@
     \end{itemize}
     \vspace{1em}
     \begin{center}
-        \includegraphics[width=0.7\textwidth]{assets/skewness.png}
+        \includegraphics[width=0.9\textwidth]{assets/skewness.png}
     \end{center}
     \vfill
 \end{frame}
@@ -174,7 +144,7 @@
     \end{itemize}
     \vspace{1em}
     \begin{center}
-        \includegraphics[width=0.7\textwidth]{assets/log-scaled-pollutants.png}
+        \includegraphics[width=0.9\textwidth]{assets/log-scaled-pollutants.png}
     \end{center}
     \vfill
 \end{frame}
@@ -198,6 +168,36 @@
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Preliminary Analysis}
+    \vspace{0.5em}
+    \begin{center}
+        \includegraphics[width=0.85\textwidth]{assets/feature-correlation-matrix-final.png}
+    \end{center}
+    \vfill
+\end{frame}
+
+\begin{frame}{Preliminary Analysis}
+    \begin{itemize}
+       \item Correlation between pollutants:
+           \begin{itemize}
+               \item Most pollutants positively correlated with each other
+               \item O\textsubscript{3} shows distinct pattern from other pollutants
+           \end{itemize}
+       \item Weather correlations:
+           \begin{itemize}
+               \item Humidity: negative correlation with most pollutants
+               \item Wind speed: negative correlation, aids pollutant dispersion
+               \item Temperature: positive correlation with O\textsubscript{3}
+               \item UV index: positive correlation with O\textsubscript{3}
+           \end{itemize}
+       \item Temporal patterns:
+           \begin{itemize}
+               \item Strong seasonal trends observed
+               \item Higher pollution in autumn and winter
+           \end{itemize}
+    \end{itemize}
+\end{frame}
+
 \section{Methodology}
 
 \begin{frame}{Model Development}
@@ -212,7 +212,6 @@
             \item Training: 2015-2018
             \item Testing: 2019
         \end{itemize}
-    \item Feature selection using VIF analysis
     \item Removed features with VIF > 4:
         \begin{itemize}
             \item minTempC
@@ -252,10 +251,13 @@
     Hyderabad & 0.598 & 0.390 & 0.390 \\
     Bengaluru & 0.427 & 0.246 & 0.481 \\
     Jaipur & 0.411 & 0.198 & 0.472 \\
-    Mumbai & 0.061 & 0.007 & 0.649 \\
+    Mumbai* & 0.061 & 0.007 & 0.649 \\
     \hline
     \end{tabular}
     \end{table}
+    \begin{center}
+    \footnotesize{* Mumbai had substantial missing data, only 2/7 pollutants were modeled}
+    \end{center}
 \end{frame}
 
 \begin{frame}{Key Findings}
@@ -273,9 +275,11 @@
         \end{itemize}
     \item Key predictors:
         \begin{itemize}
-            \item Month of year (seasonal patterns)
+            \item Month of the year (seasonal patterns)
             \item Humidity (negative correlation)
-            \item Wind speed and UV index
+            \item Temperature (positive correlation)
+            \item $\cos(hour\ of\ day)$ (cyclic pattern)
+            \item Cumulative precipitation over 24 hours
         \end{itemize}
 \end{itemize}
 \end{frame}
@@ -292,16 +296,15 @@
         \end{itemize}
     \item Temporal patterns are strong predictors
     \item Meteorological variables show consistent influence
-    \item Linear models capture main relationships
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Future Work}
+\begin{frame}{Room for Improvement}
 \begin{itemize}
     \item Explore more sophisticated approaches:
         \begin{itemize}
             \item Generalized Additive Models (GAMs)
-            \item Machine learning techniques
+            \item Using time series models (e.g. LSTM)
         \end{itemize}
     \item Additional predictors:
         \begin{itemize}
