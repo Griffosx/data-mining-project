@@ -40,7 +40,7 @@
     \begin{itemize}
         \item Background
             \begin{itemize}
-                \item Air pollution among the most pressing global health threats
+                \item Air pollution among most pressing global health threats
                 \item Particularly severe in India
                 \item Driven by rapid urbanization and economic growth
             \end{itemize}
@@ -61,7 +61,7 @@
         \item Numerous studies on air pollution, including in India
         \item Research gap
             \begin{itemize}
-                \item No existing studies examining these five specific cities together
+                \item No studies examining these five specific cities together
                 \item Unique combination of air quality and weather datasets
                 \item Most studies focus on time series models
             \end{itemize}
@@ -80,21 +80,21 @@
     \begin{itemize}
        \item Air Quality Data in India (2015-2020)
            \begin{itemize}
-               \item Hourly pollution measurements
+               \item Hourly data
                \item 27 major Indian cities
                \item Seven pollutants: PM\textsubscript{2.5}, PM\textsubscript{10}, NO\textsubscript{2}, SO\textsubscript{2}, CO, O\textsubscript{3}, NH\textsubscript{3}
            \end{itemize}
        \vspace{0.5em}
        \item Historical Weather Data (2006-2019)
            \begin{itemize}
-               \item Hourly weather observations
+               \item Hourly data
                \item 8 major Indian cities
                \item >20 meteorological variables
            \end{itemize}
        \vspace{0.5em}
        \item Combined Dataset
            \begin{itemize}
-               \item Intersection of air quality and weather data
+               \item Intersection of the two datasets
                \item Time period: January 2015 to December 2019
                \item 5 cities
                    \begin{itemize}
@@ -106,12 +106,10 @@
 \end{frame}
 
 \begin{frame}{Raw Outcome Variable Distribution}
+    Right-skewed distributions
     \begin{itemize}
-        \item Right-skewed distributions
-            \begin{itemize}
-                \item High frequency of lower values with a long tail of higher values
-                \item Pattern consistent across all pollutants and cities
-            \end{itemize}
+        \item High frequency of low values with a long tail on the right
+        \item Pattern consistent across all pollutants and cities
     \end{itemize}
     \vspace{1em}
     \begin{center}
@@ -121,11 +119,9 @@
 \end{frame}
 
 \begin{frame}{After Log Transformation}
+    Applied $\log(1 + x)$ transformation to all outcome variables
     \begin{itemize}
-        \item Applied $\log(1 + x)$ transformation to all outcome variables
-            \begin{itemize}
-                \item Resulted in more normal-like distributions
-            \end{itemize}
+        \item Resulted in more normal-like distributions
     \end{itemize}
     \vspace{1em}
     \begin{center}
