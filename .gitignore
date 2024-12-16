@@ -11,5 +11,6 @@ input/
 *.nav
 *.out
 *.run.xml
+*.snm
 *.synctex.gz
 *.toc
